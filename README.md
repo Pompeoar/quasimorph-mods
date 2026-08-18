@@ -20,10 +20,11 @@ src/<ModName>/               one folder per mod = one Workshop item
   modmanifest.json             what the game's loader reads
   patch-targets.json           the game members this mod patches (see Verifying)
   thumbnail.png                Steam Workshop preview image (optional)
+  workshop-images/             extra gallery shots, uploaded by hand
 dev/<ModName>/               local-only helpers; built like mods, never published
 tools/Verify/                dev-only verifier, never ships
 tools/core-targets.json      mod-loader surface every mod depends on
-tools/make-thumbnail.ps1     builds a Workshop preview from an in-game capture
+tools/make-images.ps1        builds Workshop images from in-game captures
 dist/<ModName>/              exactly what gets uploaded to the Workshop
 ```
 

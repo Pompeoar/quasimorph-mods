@@ -107,13 +107,23 @@ Pass `FALSE` when the preview hasn't changed — it skips re-uploading the image
 command writes a changelog, so note changes in the description or a change note on the
 site.
 
-## The preview image
+## The preview image and gallery
 
-`tools/make-thumbnail.ps1` builds `src/PerkCooldownHud/thumbnail.png` from an in-game
-capture, and `build.ps1` stages it automatically. It is a script rather than a checked-in
-binary so the crop is reproducible and re-runnable against a fresh screenshot.
+`tools/make-images.ps1` builds `src/PerkCooldownHud/thumbnail.png` and
+`src/PerkCooldownHud/workshop-images/*.png` from in-game captures. `build.ps1` stages
+`thumbnail.png` automatically; the gallery images are **added by hand on the item page**,
+since no console command uploads them.
 
-Raw captures here are 5120x1440 ultrawide, where the effect bar is a ~1000px sliver in a
+It is a script rather than checked-in binaries so the crops are reproducible against fresh
+screenshots.
+
+Raw captures here are 5120x1440 ultrawide, where the effect bar is a ~900px sliver in a
 mostly black frame — unreadable once Steam scales it into a square grid tile. The script
-crops the bar, scales it nearest-neighbour (it is pixel art; bilinear smears it) and
-captions it. Steam rejects previews over 1 MB; the script warns if it gets close.
+crops the bar and scales it nearest-neighbour (it is pixel art; bilinear smears it). Steam
+rejects previews over 1 MB; the script warns if one gets close.
+
+**A trap worth knowing:** this mod's signal is a yellow *border* on a dimmed panel, but the
+game independently draws the damage shield with a yellow *icon fill*. Both read as "yellow
+panel" at a glance, and the first thumbnail published here showcased two damage shields by
+mistake. The zoom rectangle is pinned by coordinate to panels that are genuinely cooling
+down.
