@@ -109,10 +109,15 @@ site.
 
 ## The preview image and gallery
 
-`tools/make-images.ps1` builds `src/PerkCooldownHud/thumbnail.png` and
-`src/PerkCooldownHud/workshop-images/*.png` from in-game captures. `build.ps1` stages
-`thumbnail.png` automatically; the gallery images are **added by hand on the item page**,
+`tools/make-images.ps1` builds `src/PerkCooldownHud/thumbnail.png` and the
+`src/PerkCooldownHud/workshop-images/` gallery from in-game captures. `build.ps1` stages
+`thumbnail.png` automatically; the gallery images are **attached by hand on the item page**,
 since no console command uploads them.
+
+The gallery is a before/after pair twice over — cropped to the effect bar so the feature is
+legible, then the untouched full-screen captures. Subscribers reasonably distrust a listing
+that only shows zoomed-in fragments, so the full-screen pair is copied byte-for-byte rather
+than re-encoded and stays a genuine unedited screenshot.
 
 It is a script rather than checked-in binaries so the crops are reproducible against fresh
 screenshots.
