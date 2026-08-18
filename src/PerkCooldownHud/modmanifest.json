@@ -1,0 +1,11 @@
+{
+  "UniqueModName": "PerkCooldownHud",
+  "Assemblies": [
+    "PerkCooldownHud.dll"
+  ],
+  "Dependencies": [],
+  "SteamTags": [
+    "UI"
+  ],
+  "RoomPresetNamespaceSlot": 0
+}
