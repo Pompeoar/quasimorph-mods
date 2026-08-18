@@ -7,6 +7,8 @@ against the game's native mod loader. BepInEx is not required.
 |---|---|
 | [PerkCooldownHud](src/PerkCooldownHud) | Shows how many turns until a triggered perk is ready again |
 
+Publishing one of these: **[PUBLISHING.md](PUBLISHING.md)**.
+
 ## Layout
 
 ```
@@ -17,8 +19,11 @@ src/<ModName>/               one folder per mod = one Workshop item
   <ModName>.csproj             identity only; shared plumbing is inherited
   modmanifest.json             what the game's loader reads
   patch-targets.json           the game members this mod patches (see Verifying)
+  thumbnail.png                Steam Workshop preview image (optional)
+dev/<ModName>/               local-only helpers; built like mods, never published
 tools/Verify/                dev-only verifier, never ships
 tools/core-targets.json      mod-loader surface every mod depends on
+tools/make-thumbnail.ps1     builds a Workshop preview from an in-game capture
 dist/<ModName>/              exactly what gets uploaded to the Workshop
 ```
 
@@ -31,8 +36,9 @@ the game's is redistributed.
 Needs the .NET SDK. No Unity install required.
 
 ```powershell
-.\build.ps1                          # build + verify + deploy everything
+.\build.ps1                          # build + verify + deploy everything in src\
 .\build.ps1 -Mod PerkCooldownHud     # just one
+.\build.ps1 -IncludeDev              # also build/deploy the dev\ helpers
 .\build.ps1 -NoDeploy                # build and stage, don't touch the game folder
 .\build.ps1 -SkipVerify
 .\build.ps1 -GameDir 'D:\Steam\steamapps\common\Quasimorph'
@@ -79,6 +85,18 @@ Run it after every game update.
 5. Optionally a checks class in `tools/Verify/Checks/`, registered in `Program.cs`.
 
 `build.ps1` picks up the new folder automatically.
+
+### Local-only helpers
+
+`dev/<ModName>/` builds exactly like `src/<ModName>/` but is **never staged into `dist/`**,
+because `dist/` is the set of folders passed to `mod_createworkshopitem` and a dev tool
+sitting in there is one mistyped path away from being published. They are skipped unless
+you pass `-IncludeDev` or name one with `-Mod`. They are still verified, since they bind to
+the same game surface and break the same way on a game update.
+
+`dev/EnableConsole` unlocks the in-game console, which ships disabled (`Console false` in
+`config_globals.txt`) and is the only route to the Workshop upload commands. See
+[PUBLISHING.md](PUBLISHING.md).
 
 ### Gotchas found in the loader
 

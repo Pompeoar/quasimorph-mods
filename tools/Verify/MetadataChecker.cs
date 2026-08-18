@@ -77,7 +77,9 @@ public sealed class MetadataChecker
 
     private void CheckProperty(Type type, TargetMember member, string source)
     {
-        var p = type.GetProperty(member.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        var p = type.GetProperty(
+            member.Name,
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
         if (p is null)
         {
@@ -92,11 +94,30 @@ public sealed class MetadataChecker
         _reporter.Assert(
             p.GetMethod is not null,
             $"[{source}] {type.Name}.{member.Name} has no getter to patch");
+
+        // A static/instance flip compiles fine on our side but throws at patch or call time,
+        // so pin it when the manifest cares.
+        if (member.IsStatic is bool wantStatic)
+        {
+            var isStatic = (p.GetMethod ?? p.SetMethod)?.IsStatic == true;
+            _reporter.Assert(
+                isStatic == wantStatic,
+                $"[{source}] {type.Name}.{member.Name} is {(isStatic ? "static" : "an instance member")}, expected {(wantStatic ? "static" : "an instance member")}");
+        }
+
+        if (member.RequiresSetter == true)
+        {
+            _reporter.Assert(
+                p.SetMethod is not null,
+                $"[{source}] {type.Name}.{member.Name} has no setter{Because(member.Why)}");
+        }
     }
 
     private void CheckField(Type type, TargetMember member, string source)
     {
-        var f = type.GetField(member.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+        var f = type.GetField(
+            member.Name,
+            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
         if (f is null)
         {
@@ -107,6 +128,13 @@ public sealed class MetadataChecker
         _reporter.Assert(
             f.FieldType.Name == member.Type,
             $"[{source}] {type.Name}.{member.Name} is {f.FieldType.Name}, expected {member.Type}");
+
+        if (member.IsStatic is bool wantStatic)
+        {
+            _reporter.Assert(
+                f.IsStatic == wantStatic,
+                $"[{source}] {type.Name}.{member.Name} is {(f.IsStatic ? "static" : "an instance member")}, expected {(wantStatic ? "static" : "an instance member")}");
+        }
     }
 
     private void CheckMethod(Type type, TargetMethod method, string source)

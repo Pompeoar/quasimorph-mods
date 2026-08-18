@@ -1,0 +1,38 @@
+{
+  "description": "Members EnableConsole touches. It sets a config flag rather than patching, but the flag and the key check it feeds are still game surface that can drift.",
+  "types": [
+    {
+      "name": "MGSC.GlobalSettings",
+      "properties": [
+        { "name": "Console", "type": "Boolean", "static": false, "setter": true, "why": "set true so GameModeStateMachine.LateUpdate honours the backquote toggle" }
+      ]
+    },
+    {
+      "name": "MGSC.Data",
+      "properties": [
+        { "name": "Global", "type": "GlobalSettings", "static": true, "why": "static holder the flag is set on" }
+      ]
+    },
+    {
+      "name": "MGSC.GameModeStateMachine"
+    },
+    {
+      "name": "MGSC.CreateSteamWorkshopItemCommand",
+      "methods": [
+        { "name": "Execute", "params": ["String[]"], "why": "mod_createworkshopitem - the publish entry point" }
+      ]
+    },
+    {
+      "name": "MGSC.UpdateSteamWorkshopItemCommand",
+      "methods": [
+        { "name": "Execute", "params": ["String[]"], "why": "mod_updateworkshopitem - the only command that sets tags and the thumbnail" }
+      ]
+    },
+    {
+      "name": "MGSC.ListSteamWorkshopItemsCommand",
+      "methods": [
+        { "name": "Execute", "params": ["String[]"], "why": "mod_listworkshopitems - recovers a forgotten item id" }
+      ]
+    }
+  ]
+}

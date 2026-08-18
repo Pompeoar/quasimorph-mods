@@ -1,0 +1,9 @@
+{
+  "UniqueModName": "EnableConsole",
+  "Assemblies": [
+    "EnableConsole.dll"
+  ],
+  "Dependencies": [],
+  "SteamTags": [],
+  "RoomPresetNamespaceSlot": 0
+}

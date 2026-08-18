@@ -7,13 +7,18 @@
     dist\<ModName>\. Only the mod's own dll and its modmanifest.json ship: every reference
     resolves from the player's install, and 0Harmony.dll already comes with the game.
 
+    dev\<ModName>\ holds local-only helpers that must never reach the Workshop. They are
+    built and deployed exactly like a real mod, but are never staged into dist\, and they
+    are skipped unless -IncludeDev is passed.
+
     In the current game build, Bootstrap.InitMods loads assemblies from Steam Workshop and
     from Application.persistentDataPath\LocalUserPresets, so the latter is the local test
     folder. The game must be fully restarted to pick up a rebuilt assembly.
 
 .EXAMPLE
-    .\build.ps1                          # build + verify + deploy every mod
+    .\build.ps1                          # build + verify + deploy every shippable mod
     .\build.ps1 -Mod PerkCooldownHud     # just the one
+    .\build.ps1 -IncludeDev              # also build/deploy the dev\ helpers
     .\build.ps1 -NoDeploy                # build and stage only
     .\build.ps1 -GameDir 'D:\Steam\steamapps\common\Quasimorph'
 #>
@@ -22,6 +27,7 @@ param(
     [string]$Mod,
     [string]$GameDir = 'C:\Program Files (x86)\Steam\steamapps\common\Quasimorph',
     [string]$Configuration = 'Release',
+    [switch]$IncludeDev,
     [switch]$NoDeploy,
     [switch]$SkipVerify
 )
@@ -30,21 +36,32 @@ $ErrorActionPreference = 'Stop'
 
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $srcRoot = Join-Path $root 'src'
+$devRoot = Join-Path $root 'dev'
 $managed = Join-Path $GameDir 'Quasimorph_Data\Managed'
 
 if (-not (Test-Path $managed)) {
     throw "Could not find the game's Managed folder at '$managed'. Pass -GameDir."
 }
 
-$mods = @(Get-ChildItem $srcRoot -Directory | Where-Object {
-    Test-Path (Join-Path $_.FullName "$($_.Name).csproj")
-})
+function Get-ModFolders([string]$Path) {
+    if (-not (Test-Path $Path)) { return @() }
+    return @(Get-ChildItem $Path -Directory | Where-Object {
+        Test-Path (Join-Path $_.FullName "$($_.Name).csproj")
+    })
+}
+
+$shippable = Get-ModFolders $srcRoot
+$devMods = Get-ModFolders $devRoot
+
+# An explicit -Mod may name a dev helper, in which case wanting it is unambiguous and
+# -IncludeDev would be redundant ceremony.
+$mods = @($shippable) + $(if ($IncludeDev -or $Mod) { $devMods } else { @() })
 
 if ($Mod) {
     $mods = @($mods | Where-Object { $_.Name -eq $Mod })
     if ($mods.Count -eq 0) {
-        $available = (Get-ChildItem $srcRoot -Directory | ForEach-Object Name) -join ', '
-        throw "No mod named '$Mod' in src\. Available: $available"
+        $available = (@($shippable) + @($devMods) | ForEach-Object Name) -join ', '
+        throw "No mod named '$Mod' in src\ or dev\. Available: $available"
     }
 }
 
@@ -65,8 +82,13 @@ if (-not $NoDeploy) {
 
 foreach ($m in $mods) {
     $name = $m.Name
+    $isDev = $m.FullName.StartsWith($devRoot, [StringComparison]::OrdinalIgnoreCase)
     Write-Host ''
-    Write-Host "=== $name ===" -ForegroundColor Cyan
+    if ($isDev) {
+        Write-Host "=== $name (dev helper - not published) ===" -ForegroundColor DarkCyan
+    } else {
+        Write-Host "=== $name ===" -ForegroundColor Cyan
+    }
 
     $project = Join-Path $m.FullName "$name.csproj"
     $outDir = Join-Path $root "build\$name"
@@ -85,23 +107,37 @@ foreach ($m in $mods) {
         Write-Warning "$name\modmanifest.json declares UniqueModName '$uniqueName'; folder is '$name'."
     }
 
-    $staging = Join-Path $root "dist\$name"
-    if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
-    New-Item -ItemType Directory -Force -Path $staging | Out-Null
+    if ($isDev) {
+        # Deliberately never staged into dist\: dist\ is the set of folders that get passed
+        # to mod_createworkshopitem, and a dev helper in there is one mistyped path away
+        # from being published.
+        $staging = $outDir
+        Copy-Item $manifestPath $staging -Force
+        Write-Host "built    -> $staging (not staged to dist\)" -ForegroundColor DarkGreen
+    } else {
+        $staging = Join-Path $root "dist\$name"
+        if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
+        New-Item -ItemType Directory -Force -Path $staging | Out-Null
 
-    Copy-Item (Join-Path $outDir "$name.dll") $staging -Force
-    Copy-Item $manifestPath $staging -Force
+        Copy-Item (Join-Path $outDir "$name.dll") $staging -Force
+        Copy-Item $manifestPath $staging -Force
 
-    $thumb = Join-Path $m.FullName 'thumbnail.png'
-    if (Test-Path $thumb) { Copy-Item $thumb $staging -Force }
+        $thumb = Join-Path $m.FullName 'thumbnail.png'
+        if (Test-Path $thumb) {
+            Copy-Item $thumb $staging -Force
+        } else {
+            Write-Warning "$name has no thumbnail.png; mod_updateworkshopitem will not set a preview image."
+        }
 
-    Write-Host "staged   -> $staging" -ForegroundColor Green
+        Write-Host "staged   -> $staging" -ForegroundColor Green
+    }
 
     if ($NoDeploy) { continue }
 
     $target = Join-Path $localMods $name
     New-Item -ItemType Directory -Force -Path $target | Out-Null
-    Copy-Item (Join-Path $staging '*') $target -Recurse -Force
+    Copy-Item (Join-Path $staging "$name.dll") $target -Force
+    Copy-Item (Join-Path $staging 'modmanifest.json') $target -Force
     Write-Host "deployed -> $target" -ForegroundColor Green
 }
 

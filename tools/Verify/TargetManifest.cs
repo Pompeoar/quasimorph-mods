@@ -49,6 +49,14 @@ public sealed class TargetMember
     [JsonPropertyName("type")]
     public string Type { get; set; }
 
+    /// <summary>Pin static-ness when it matters. Omit to accept either.</summary>
+    [JsonPropertyName("static")]
+    public bool? IsStatic { get; set; }
+
+    /// <summary>Set when the mod writes to the member, not just reads it.</summary>
+    [JsonPropertyName("setter")]
+    public bool? RequiresSetter { get; set; }
+
     [JsonPropertyName("why")]
     public string Why { get; set; }
 }

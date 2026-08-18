@@ -51,11 +51,15 @@ if (File.Exists(coreTargets) && only is null)
     checker.Check(manifest, "core");
 }
 
-// Per-mod declared patch targets.
+// Per-mod declared patch targets. dev\ helpers are verified too - they bind to the same
+// game surface and break the same way on a game update, even though they never ship.
 var srcDir = Path.Combine(repoRoot, "src");
-var mods = Directory.Exists(srcDir)
-    ? Directory.GetDirectories(srcDir).OrderBy(d => d).ToList()
-    : new List<string>();
+var devDir = Path.Combine(repoRoot, "dev");
+var mods = new[] { srcDir, devDir }
+    .Where(Directory.Exists)
+    .SelectMany(Directory.GetDirectories)
+    .OrderBy(d => Path.GetFileName(d))
+    .ToList();
 
 var verifiedMods = new List<string>();
 
