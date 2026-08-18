@@ -1,0 +1,43 @@
+<Project>
+
+  <!--
+    Game references for the mod projects.
+
+    These live in .targets rather than .props deliberately: .props is imported before the
+    project body, so an IsModProject opt-out set inside a .csproj would not be visible yet.
+    .targets is imported after, so tools\Verify can opt out with IsModProject=false.
+  -->
+
+  <ItemGroup Condition="'$(IsModProject)' != 'false'">
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(GameManagedDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(GameManagedDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>$(GameManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(GameManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(GameManagedDir)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(GameManagedDir)\UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="CheckGameManagedDir" BeforeTargets="ResolveAssemblyReferences" Condition="'$(IsModProject)' != 'false'">
+    <Error Condition="!Exists('$(GameManagedDir)')"
+           Text="Quasimorph's Managed folder was not found at '$(GameManagedDir)'. Pass -GameDir to build.ps1, or -p:GameManagedDir=... to dotnet build." />
+  </Target>
+
+</Project>

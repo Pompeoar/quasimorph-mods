@@ -1,0 +1,41 @@
+{
+  "description": "Members PerkCooldownHud patches. Harmony binds by name at runtime, so a rename in a game update would otherwise be a silent no-op.",
+  "types": [
+    {
+      "name": "MGSC.PerkTrigger",
+      "baseType": "MGSC.BaseEffect",
+      "interfaces": ["MGSC.IEffectWithView"],
+      "properties": [
+        { "name": "Show", "type": "Boolean", "why": "postfixed to true so the panel survives the cooldown" },
+        { "name": "ViewValue", "type": "Single", "why": "postfixed to Duration while cooling; vanilla runs negative" },
+        { "name": "BlinkOnChange", "type": "Boolean", "why": "narrowed to the active phase to stop a per-turn ping" },
+        { "name": "IsRedView", "type": "Boolean", "why": "optional red border while cooling" },
+        { "name": "IsInActivePhase", "type": "Boolean", "why": "the active/cooldown discriminator every patch reads" },
+        { "name": "ActivePhaseDuration", "type": "Int32" }
+      ]
+    },
+    {
+      "name": "MGSC.BaseEffect",
+      "properties": [
+        { "name": "Duration", "type": "Int32", "why": "reported as turns of cooldown remaining" }
+      ]
+    },
+    {
+      "name": "MGSC.IEffectWithView"
+    },
+    {
+      "name": "MGSC.CommonEffectPanel",
+      "methods": [
+        { "name": "Initialize", "params": ["Creatures", "IEffectWithView", "Sprite"] },
+        { "name": "RefreshValue", "params": ["List`1"] },
+        { "name": "InitializeBackground", "params": [], "why": "the single place vanilla picks the red or green border" }
+      ],
+      "fields": [
+        { "name": "_bg", "type": "Image", "why": "reached by name via Harmony FieldRefAccess, which throws at patch time if renamed" },
+        { "name": "_yellowBorder", "type": "Sprite", "why": "the game's own yellow sprite, reused as the cooling-down state" },
+        { "name": "_originalBgSprite", "type": "Sprite", "why": "OnPointerExit restores from this, so it must move too" },
+        { "name": "_effectWithViews", "type": "List`1", "why": "identifies which effect a panel is currently showing" }
+      ]
+    }
+  ]
+}

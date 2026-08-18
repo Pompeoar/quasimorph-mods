@@ -1,0 +1,26 @@
+{
+  "description": "Quasimorph's native mod-loader surface. Every mod in this repo depends on these.",
+  "types": [
+    {
+      "name": "MGSC.Hook",
+      "constructors": [["ModHookType"]]
+    },
+    {
+      "name": "MGSC.ModHookType"
+    },
+    {
+      "name": "MGSC.IModContext",
+      "properties": [
+        { "name": "ModContentPath", "type": "String", "why": "mods read their own content folder from this" }
+      ]
+    },
+    {
+      "name": "MGSC.UserMod",
+      "fields": [
+        { "name": "UniqueModName", "type": "String" },
+        { "name": "Assemblies", "type": "List`1" },
+        { "name": "Dependencies", "type": "List`1", "why": "dependency declaration is by unique name only, with no version constraint" }
+      ]
+    }
+  ]
+}

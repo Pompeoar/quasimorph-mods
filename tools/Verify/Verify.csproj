@@ -1,11 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- Not a mod: a dev-only tool that never ships. Opts out of the game references. -->
+    <IsModProject>false</IsModProject>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>VerifyPatchTargets</AssemblyName>
+    <AssemblyName>Verify</AssemblyName>
+    <RootNamespace>Verify</RootNamespace>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
