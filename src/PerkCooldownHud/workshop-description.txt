@@ -1,0 +1,38 @@
+[h1]Perk Cooldown HUD[/h1]
+
+Vanilla shows a triggered perk's HUD icon only while the perk is [i]active[/i]. The moment the active phase ends the icon vanishes, and you are left guessing how many turns remain before Blurred Silhouette (or any other triggered perk) comes back.
+
+This mod keeps the icon on screen through the cooldown, with a yellow border and a counter.
+
+[table]
+[tr][th]Perk state[/th][th]Vanilla[/th][th]With this mod[/th][/tr]
+[tr][td]Ready[/td][td]no icon[/td][td]no icon[/td][/tr]
+[tr][td]Active[/td][td]icon, green border[/td][td]unchanged[/td][/tr]
+[tr][td]Cooling down[/td][td][b]no icon[/b][/td][td]yellow border, dimmed, counting down[/td][/tr]
+[tr][td]Ready again[/td][td]-[/td][td]icon disappears[/td][/tr]
+[/table]
+
+Green means active, yellow means cooling, no icon means ready.
+
+The border carries the signal because green and red already mean buff and debuff elsewhere in the HUD, so a third colour reads at a glance. The yellow is the game's own sprite -- [i]CommonEffectPanel[/i] already ships one for hover -- so it matches the palette instead of introducing an invented colour.
+
+[h1]Details[/h1]
+
+[list]
+[*]The number is the game's own remaining duration, the same value the character sheet already shows as cooldown remaining. Perks with ICDRecovery tick down faster than one per turn, and the readout stays truthful because it reports duration rather than counting elapsed turns.
+[*]No extra sounds or screen flashes. The vanilla panel flashes white and plays a sound whenever its value changes; that is suppressed for the cooldown counter, which would otherwise ping you once per turn for the whole cooldown.
+[*]Display code only. Nothing is added to your save, and unsubscribing reverts to vanilla behaviour with no migration.
+[/list]
+
+[h1]Compatibility[/h1]
+
+Uses the game's native mod loader. BepInEx is not required. Built and verified against game build 1.0.1.566s.7e4da55.
+
+Should play well with anything that does not also repaint the mission effect panels.
+
+[h1]Known cosmetic notes[/h1]
+
+[list]
+[*]The panel's inner fill stays green under the yellow border; the prefab only carries red and green fill colours.
+[*]Cooling panels have no distinct hover highlight, because vanilla's hover colour is also yellow.
+[/list]

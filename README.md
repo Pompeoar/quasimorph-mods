@@ -3,9 +3,9 @@
 Mods for [Quasimorph](https://store.steampowered.com/app/2059170/Quasimorph/), built
 against the game's native mod loader. BepInEx is not required.
 
-| Mod | What it does |
-|---|---|
-| [PerkCooldownHud](src/PerkCooldownHud) | Shows how many turns until a triggered perk is ready again |
+| Mod | Workshop | What it does |
+|---|---|---|
+| [PerkCooldownHud](src/PerkCooldownHud) | [3785994116](https://steamcommunity.com/sharedfiles/filedetails/?id=3785994116) | Shows how many turns until a triggered perk is ready again |
 
 Publishing one of these: **[PUBLISHING.md](PUBLISHING.md)**.
 

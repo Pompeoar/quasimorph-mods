@@ -2,6 +2,8 @@
 
 A small Quasimorph mod that shows you when a triggered perk will be ready again.
 
+Steam Workshop item: [`3785994116`](https://steamcommunity.com/sharedfiles/filedetails/?id=3785994116)
+
 Vanilla shows a perk's HUD icon only while the perk is *active*. The moment the active
 phase ends the icon vanishes and you are left guessing how many turns remain before
 Blurred Silhouette (or any other triggered perk) comes back. This mod keeps the icon on

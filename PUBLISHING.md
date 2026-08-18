@@ -82,6 +82,15 @@ Open the item page and set:
 - **Title,** if you want something other than the raw `UniqueModName`
   (create set it to `PerkCooldownHud`).
 
+## Published item ids
+
+Keep these here so an update never depends on remembering one. `mod_listworkshopitems`
+recovers them from Steam if this list is ever lost.
+
+| Mod | Item id |
+|---|---|
+| PerkCooldownHud | `3785994116` |
+
 ## Updating later
 
 Rebuild, then re-run the update command with the same id:
@@ -91,7 +100,7 @@ Rebuild, then re-run the update command with the same id:
 ```
 
 ```
-mod_updateworkshopitem <item_id> C:\Dev\quasimorph-mods\dist\PerkCooldownHud FALSE
+mod_updateworkshopitem 3785994116 C:\Dev\quasimorph-mods\dist\PerkCooldownHud FALSE
 ```
 
 Pass `FALSE` when the preview hasn't changed — it skips re-uploading the image. Neither
