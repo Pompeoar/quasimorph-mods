@@ -172,8 +172,9 @@ function Test-Description {
     if ($text -notmatch '\[url=') {
         $warnings += 'No [url] link. Every serious mod here links its source.'
     }
-    if ($rendered -notmatch '(?i)\b(subscribe|subscribing)\b') {
-        $warnings += 'Never says how to install it. One line saying "Subscribe" is enough.'
+    if ($rendered -match '(?i)\bsubscribe\b' -and
+        $rendered -notmatch '(?i)\b(requires?|needs?|must (be )?install|depends on|load order)\b') {
+        $warnings += 'Explains how to subscribe. Everyone reading a Workshop page knows; cut it.'
     }
     if ($rendered -notmatch '(?i)(save|campaign|mid-campaign|unsubscrib)') {
         $warnings += 'Says nothing about save safety. That is the question players ask most.'
@@ -190,6 +191,18 @@ function Test-Description {
     if ($caps.Count -gt 0) { $warnings += "ALL CAPS words: $($caps -join ', ')." }
     if ($rendered -match '(?i)\bchange ?log\b') {
         $warnings += 'Looks like a changelog. Steam has a Change Notes tab; keep it out of the body.'
+    }
+
+    # --- verbosity --------------------------------------------------------------
+    $bullets = [regex]::Matches($text, '(?s)\[\*\](.*?)(?=\[\*\]|\[/list\]|\[/olist\])')
+    $long = @()
+    foreach ($b in $bullets) {
+        $body = Get-RenderedText $b.Groups[1].Value
+        if ($body.Length -gt 180) { $long += "{0}... ({1} chars)" -f $body.Substring(0, 40), $body.Length }
+    }
+    foreach ($l in $long) { $warnings += "Bullet is padded -- $l" }
+    if ($bullets.Count -gt 6) {
+        $warnings += "$($bullets.Count) bullets in one list. Cut to the ones a player would act on."
     }
 
     # --- report -----------------------------------------------------------------

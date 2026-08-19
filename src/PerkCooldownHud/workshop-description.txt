@@ -1,9 +1,9 @@
 [b]Shows how many turns until a triggered perk is ready again.[/b]
 
 Vanilla draws a perk's icon only while the perk is active. The moment the active phase
-ends the icon disappears, and nothing on screen tells you how long until Blurred
-Silhouette can save you a second time. This mod keeps the icon up through the cooldown,
-dimmed, with the turns remaining printed on it.
+ends the icon disappears, and nothing tells you how long until Blurred Silhouette can save
+you a second time. This mod keeps the icon up through the cooldown, dimmed, with the turns
+remaining on it.
 
 [table]
 [tr][th]Perk state[/th][th]Vanilla[/th][th]With this mod[/th][/tr]
@@ -12,37 +12,23 @@ dimmed, with the turns remaining printed on it.
 [tr][td]Cooling down[/td][td][b]no icon at all[/b][/td][td]yellow border, dimmed, counting down[/td][/tr]
 [/table]
 
-No icon means ready, green means active, yellow means cooling. When the yellow one
-vanishes, the perk is back.
+No icon means ready, green means active, yellow means cooling.
 
 [b]What it does not change[/b]
 
-It only draws. No cooldown timings, no balance, nothing about how perks actually behave.
-None of it is written to your save either, so you can add it or drop it mid-campaign, and
-unsubscribing puts you straight back to stock.
+It only draws. No timings, no balance, nothing about how perks behave, and nothing of it
+goes into your save -- add it or drop it mid-campaign.
 
 [b]Worth knowing[/b]
 
 [list]
-[*][b]The number is the game's own countdown[/b], not a tally of elapsed turns. It is the
-same value the character sheet calls cooldown remaining, so it cannot drift out of sync
-with the real thing.
-[*][b]It sometimes drops by more than one per turn.[/b] Perks with cooldown recovery
-really do tick down faster, and you are watching that happen.
-[*][b]A number in the hundreds is not a glitch.[/b] A few perks measure their cooldown in
-action points rather than turns. Those start high and fall quickly.
-[*][b]The yellow is the game's own sprite[/b], the one the effect panel already uses for
-mouse-over, so the third state sits inside the palette rather than shouting next to it.
-Green and red are already spoken for by buffs and debuffs.
-[*][b]No new noise.[/b] The vanilla panel flashes white and plays a sound every time its
-number changes, which left alone would ping you once per turn for an entire cooldown. It
-is muted for the counter and only the counter.
+[*][b]The number is the game's own countdown[/b], the same one your character sheet shows.
+It cannot drift out of sync.
+[*][b]It can drop by more than one per turn.[/b] Perks with cooldown recovery really do
+tick down faster.
+[*][b]A number in the hundreds is not a glitch.[/b] A few perks count their cooldown in
+action points rather than turns.
 [/list]
 
-[b]Installing[/b]
-
-Subscribe, and that is the whole install. It uses the game's own mod loader, so there is
-no BepInEx, no config file, and nothing to set up. Built against game build
-1.0.1.566s.7e4da55.
-
-If something looks wrong, drop a screenshot in the comments.
+Built against game build 1.0.1.566s.7e4da55. If something looks wrong, drop a screenshot
+in the comments.

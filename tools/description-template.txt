@@ -35,15 +35,18 @@ it is required or optional.>
 
 [b]Worth knowing[/b]
 
+<Only facts a player would act on, or would otherwise file a bug about. Not design
+rationale -- that belongs in the repo README. One or two lines each, three sharp notes
+beating five padded ones. Delete the section if there is nothing that qualifies.>
+
 [list]
 [*]<A behaviour that is correct but looks wrong.>
-[*]<Another one. If a player would one day file a bug about it, it belongs here.>
+[*]<Another one.>
 [/list]
 
-[b]Installing[/b]
-
-Subscribe. It uses the game's own mod loader, so there is no BepInEx and nothing to set
-up.
+<No "how to install" section. If it is just Subscribe, say nothing -- they are already on
+a Workshop page. Write one only for a real dependency, a BepInEx requirement or a load
+order constraint.>
 
 [b]Source[/b]
 

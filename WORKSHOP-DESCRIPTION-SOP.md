@@ -67,7 +67,7 @@ writing a stub for it — an empty "Compatibility" heading is worse than no head
 [O]  5. Usage         hotkeys, procedures, where to find it
 [O]  6. Configuration a table, if and only if the user can configure something
 [O]  7. Notes         edge cases that will otherwise look like bugs
-[M]  8. Install       one line for "subscribe"; more only if genuinely more
+[O]  8. Install       ONLY if it is more than "subscribe"
 [O]  9. Compatibility named conflicts, dependencies, MCM support
 [M] 10. Source        link to the repo, if the source is published
 [O] 11. Credits       mandatory if this is a fork or builds on someone's work
@@ -147,7 +147,21 @@ section, and it is the clearest single marker separating maintained mods from th
 Sort To Tabs ships a "Bad Config File" recovery procedure; More Combat Info explains why
 the crit marker disappears after a reload.
 
-If you know a player will one day file a bug report about it, it goes here first.
+The test is narrow and it is not "is this interesting": **would a player one day file a
+bug report about it?** If yes, it goes here. If it is design rationale — why you picked a
+colour, why a hook lives where it does — it goes in the repo README, not the store page.
+Nobody subscribing to a mod needs your reasoning, and three sharp notes beat five padded
+ones.
+
+### 8. Install [O]
+
+**If the install is "subscribe", say nothing.** Everyone browsing a Workshop page already
+knows how a Workshop page works, and an Installing section that says "hit Subscribe" is
+the clearest possible signal that the description is padding itself out.
+
+Write this section only when there is something genuinely unusual: a required dependency
+mod, a BepInEx requirement, a load-order constraint, a manual file step. Silence means the
+native mod loader and nothing to do, which is what the community already assumes.
 
 ### 10. Source [M, where the source is published]
 
@@ -183,6 +197,13 @@ readers there are calibrated to.
 - **Concrete.** Name the perk, the key, the panel, the number. "It increases visibility"
   is worthless; "the number is the game's own countdown, so it cannot drift" is not.
 - **Peer to peer.** The reader is a player who knows this game.
+- **Cut it after it is written.** Every bullet is one or two lines. If a sentence only
+  restates the bold lead-in of its own bullet, delete the sentence. If a bullet is
+  rationale rather than a fact the player will act on, delete the bullet. Three sharp
+  notes beat five padded ones, and the second draft should be shorter than the first.
+- **Never explain the platform to its own users.** No "hit Subscribe", no "mods go in
+  your mods folder", no "restart the game after subscribing". They are on a Workshop page
+  already.
 
 **Don't:**
 
@@ -282,7 +303,10 @@ Then read it back against this list:
 - [ ] Vanilla behaviour is contrasted explicitly with the mod's.
 - [ ] "It only draws" / save safety is stated plainly and near the top.
 - [ ] Anything called configuration is genuinely configurable by the user.
-- [ ] Every edge case that could look like a bug is written down.
+- [ ] Every edge case that could look like a bug is written down — and nothing that is
+      merely design rationale is.
+- [ ] No section explains how to subscribe to a Workshop item.
+- [ ] Every bullet survives "would the player act on this?" and is one or two lines.
 - [ ] Source link present. Credits present if anything is a fork.
 - [ ] No first-person opener, no marketing adjective, no emoji, no changelog.
 - [ ] Pure ASCII.
