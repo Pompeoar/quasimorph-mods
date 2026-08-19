@@ -249,6 +249,22 @@ Rules:
   a typographic apostrophe; the Workshop editor and the console upload path have both
   mangled non-ASCII here before.
 
+### Do not ask for what the platform cannot do
+
+**Workshop item comments do not render images.** `[img]` is stripped there, and a pasted
+image URL shows as bare text — the auto-embedding that works in Steam *discussions* does
+not apply to item comments. Steam's own formatting help page documents no image tag for
+comments at all.
+
+So "drop a screenshot in the comments" is an instruction nobody can follow. Point bug
+reports that need a picture at the repo's issue tracker, which does accept pasted images,
+and keep the comments for everything else:
+
+> If something looks wrong, say so in the comments, or open an issue with a screenshot.
+
+The same caution applies generally: before writing "do X", confirm X is something the
+reader can actually do on the page they are standing on.
+
 ---
 
 ## 6. Images

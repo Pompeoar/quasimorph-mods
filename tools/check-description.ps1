@@ -189,6 +189,9 @@ function Test-Description {
         Where-Object { $_ -notin @('HUD', 'MCM', 'JSON', 'TRUE', 'FALSE', 'BBCODE') } |
         Sort-Object -Unique
     if ($caps.Count -gt 0) { $warnings += "ALL CAPS words: $($caps -join ', ')." }
+    if ($rendered -match '(?i)\b(screenshot|image|gif|picture|pic)s?\b[^.]{0,60}\bcomments?\b') {
+        $warnings += 'Asks for an image in the comments. Workshop comments strip [img]; point at the issue tracker.'
+    }
     if ($rendered -match '(?i)\bchange ?log\b') {
         $warnings += 'Looks like a changelog. Steam has a Change Notes tab; keep it out of the body.'
     }
