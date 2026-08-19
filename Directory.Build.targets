@@ -33,6 +33,11 @@
       <HintPath>$(GameManagedDir)\UnityEngine.UIModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- AudioClip lives here; needed to touch SoundsStorage's clip fields. -->
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>$(GameManagedDir)\UnityEngine.AudioModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <Target Name="CheckGameManagedDir" BeforeTargets="ResolveAssemblyReferences" Condition="'$(IsModProject)' != 'false'">
