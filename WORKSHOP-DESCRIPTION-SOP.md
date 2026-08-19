@@ -165,12 +165,12 @@ native mod loader and nothing to do, which is what the community already assumes
 
 ### 10. Source [M, where the source is published]
 
-A `[url]` to the repository. Every serious mod in the Quasimorph scene links its source —
-NBKRedSpy's dozen mods all do, and its absence reads as a throwaway.
+A `[url]` to the repository — `https://github.com/Pompeoar/quasimorph-mods`. Every serious
+mod in the Quasimorph scene links its source; NBKRedSpy's dozen mods all do, and its
+absence reads as a throwaway. Say that issues and pull requests are welcome: it costs four
+words and it is the only invitation a passing modder will ever get.
 
-This repo currently has no remote, so nothing can be linked yet and the checker's warning
-about it is expected. Publishing the repo is the fix; a dead or private link is worse than
-none.
+A dead or private link is worse than none.
 
 ### 11. Credits [O, mandatory for forks]
 

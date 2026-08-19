@@ -30,5 +30,7 @@ tick down faster.
 action points rather than turns.
 [/list]
 
-Built against game build 1.0.1.566s.7e4da55. If something looks wrong, drop a screenshot
-in the comments.
+Built against game build 1.0.1.566s.7e4da55. Source, issues and pull requests:
+[url=https://github.com/Pompeoar/quasimorph-mods]github.com/Pompeoar/quasimorph-mods[/url]
+
+If something looks wrong, drop a screenshot in the comments.
