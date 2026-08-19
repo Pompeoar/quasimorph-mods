@@ -82,6 +82,34 @@ Open the item page and set:
 - **Title,** if you want something other than the raw `UniqueModName`
   (create set it to `PerkCooldownHud`).
 
+### The title is website-only, and renaming is safe
+
+Worth understanding properly, because it looks riskier than it is.
+
+`SetItemTitle` is called in exactly one place in the whole game — `mod_createworkshopitem`,
+which sets it to `UniqueModName`. That is why a freshly created item is named after the raw
+camel-case identifier. **`mod_updateworkshopitem` never touches the title**, so a name set on
+the website survives every future content upload, permanently. There is nothing to keep in
+sync and nothing to re-apply.
+
+The title is not purely cosmetic either. For Workshop mods it flows into the game:
+
+```
+SteamWrapper.cs:125       Title = pDetails.m_rgchTitle      (the Steam item title)
+UserModSystem.cs:337      userMod.Title = string.IsNullOrEmpty(title) ? UniqueModName : title
+ModEntryPanel.cs:62       _title.text = IsNullOrEmpty(entry.Title) ? entry.UniqueModName : entry.Title
+```
+
+So renaming on the website also renames the entry in every subscriber's in-game mod list.
+A manifest `Title` field would not help: local `LocalUserPresets` mods are hardcoded to
+`userMod.Title = userMod.UniqueModName` (line 170), and the Workshop path overwrites it at
+line 337 regardless.
+
+**`UniqueModName` is the thing that must never change once published.** It is the dedupe key,
+the `LocalUserPresets` folder name and the `modprefs.json` ordering/disabled key. Changing it
+orphans every subscriber's preferences. The display title carries no such weight — rename it
+as often as you like.
+
 ## Steam tags
 
 `SteamTags` in `modmanifest.json` is applied by `mod_updateworkshopitem` only (never by
