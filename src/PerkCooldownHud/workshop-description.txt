@@ -1,18 +1,9 @@
-[b]See how long until a triggered perk is ready again, instead of guessing.[/b]
+[b]Shows how many turns until a triggered perk is ready again.[/b]
 
-Blurred Silhouette just fired and saved you. It will do it again in a few turns -- but how many? Vanilla deletes the icon the moment the active phase ends, so there is nothing left on screen to read. You either keep a count in your head or you push your luck and find out.
-
-I got tired of finding out. So this mod keeps the icon up through the cooldown and puts the number right on it.
-
-[h2]The legend[/h2]
-
-[list]
-[*][b]No icon[/b] -- ready. Go.
-[*][b]Green border[/b] -- active right now. That is vanilla, untouched.
-[*][b]Yellow border, dimmed, with a number[/b] -- cooling down, and that is how much longer.
-[/list]
-
-When it vanishes again, you are back in business.
+Vanilla draws a perk's icon only while the perk is active. The moment the active phase
+ends the icon disappears, and nothing on screen tells you how long until Blurred
+Silhouette can save you a second time. This mod keeps the icon up through the cooldown,
+dimmed, with the turns remaining printed on it.
 
 [table]
 [tr][th]Perk state[/th][th]Vanilla[/th][th]With this mod[/th][/tr]
@@ -21,28 +12,37 @@ When it vanishes again, you are back in business.
 [tr][td]Cooling down[/td][td][b]no icon at all[/b][/td][td]yellow border, dimmed, counting down[/td][/tr]
 [/table]
 
-[i]The screenshots are before/after pairs -- the same effect bar cropped close, then the same thing in an actual mission.[/i]
+No icon means ready, green means active, yellow means cooling. When the yellow one
+vanishes, the perk is back.
 
-[h2]Why yellow, and why the border[/h2]
+[b]What it does not change[/b]
 
-Green and red already mean buff and debuff everywhere else in the mission HUD. A third colour reads instantly. A dimmed green would have to be compared against an undimmed one before it told you anything, and you do not want to be doing that with a Quasimorph breathing on you.
+It only draws. No cooldown timings, no balance, nothing about how perks actually behave.
+None of it is written to your save either, so you can add it or drop it mid-campaign, and
+unsubscribing puts you straight back to stock.
 
-The yellow is not something I made up either. The panel already ships that exact sprite for mouse-over, so it sits inside the game's palette instead of shouting next to it.
-
-[h2]A few things worth knowing[/h2]
+[b]Worth knowing[/b]
 
 [list]
-[*][b]That number is the game's own countdown[/b], not something reconstructed by counting turns. It is the same value your character sheet calls cooldown remaining, so it cannot drift out of sync with the real thing.
-[*][b]It sometimes drops by more than one per turn.[/b] Not a glitch -- perks with cooldown recovery really do tick down faster, and you are watching that happen.
-[*][b]A number in the hundreds is also not a glitch.[/b] A few perks measure their cooldown in action points rather than turns. Those start high and fall quickly.
-[*][b]No new noise.[/b] The vanilla panel flashes white and plays a sound every time its number changes. Left alone, that would ping you once per turn for the whole cooldown. It is muted for the counter and only the counter.
-[*][b]It only draws.[/b] No timings changed, no balance changed, nothing about how perks actually behave. Just a thing you can see now that you could not see before.
+[*][b]The number is the game's own countdown[/b], not a tally of elapsed turns. It is the
+same value the character sheet calls cooldown remaining, so it cannot drift out of sync
+with the real thing.
+[*][b]It sometimes drops by more than one per turn.[/b] Perks with cooldown recovery
+really do tick down faster, and you are watching that happen.
+[*][b]A number in the hundreds is not a glitch.[/b] A few perks measure their cooldown in
+action points rather than turns. Those start high and fall quickly.
+[*][b]The yellow is the game's own sprite[/b], the one the effect panel already uses for
+mouse-over, so the third state sits inside the palette rather than shouting next to it.
+Green and red are already spoken for by buffs and debuffs.
+[*][b]No new noise.[/b] The vanilla panel flashes white and plays a sound every time its
+number changes, which left alone would ping you once per turn for an entire cooldown. It
+is muted for the counter and only the counter.
 [/list]
 
-[h2]Getting it[/h2]
+[b]Installing[/b]
 
-Subscribe, and that is the whole install. It uses the game's own mod loader, so there is no BepInEx, no config file, nothing to set up and nothing to read first.
+Subscribe, and that is the whole install. It uses the game's own mod loader, so there is
+no BepInEx, no config file, and nothing to set up. Built against game build
+1.0.1.566s.7e4da55.
 
-Add it or drop it mid-campaign as you like. Unsubscribing puts you straight back to stock, because none of this mod ever goes into your save.
-
-[i]If something looks wrong, drop a screenshot in the comments and I will take a look.[/i]
+If something looks wrong, drop a screenshot in the comments.

@@ -7,7 +7,8 @@ against the game's native mod loader. BepInEx is not required.
 |---|---|---|
 | [PerkCooldownHud](src/PerkCooldownHud) | [3785994116](https://steamcommunity.com/sharedfiles/filedetails/?id=3785994116) | Shows how many turns until a triggered perk is ready again |
 
-Publishing one of these: **[PUBLISHING.md](PUBLISHING.md)**.
+Publishing one of these: **[PUBLISHING.md](PUBLISHING.md)**. Writing its store page:
+**[WORKSHOP-DESCRIPTION-SOP.md](WORKSHOP-DESCRIPTION-SOP.md)**.
 
 ## Layout
 
@@ -21,10 +22,13 @@ src/<ModName>/               one folder per mod = one Workshop item
   patch-targets.json           the game members this mod patches (see Verifying)
   thumbnail.png                Steam Workshop preview image (optional)
   workshop-images/             extra gallery shots, uploaded by hand
+  workshop-description.txt     the store page text, pasted in by hand
 dev/<ModName>/               local-only helpers; built like mods, never published
 tools/Verify/                dev-only verifier, never ships
 tools/core-targets.json      mod-loader surface every mod depends on
 tools/make-images.ps1        builds Workshop images from in-game captures
+tools/check-description.ps1  lints workshop-description.txt against the SOP
+tools/description-template.txt  skeleton for a new mod's store page
 dist/<ModName>/              exactly what gets uploaded to the Workshop
 ```
 
@@ -84,6 +88,9 @@ Run it after every game update.
    logs and individually unpatchable when a user reports a conflict.
 4. `src/<ModName>/patch-targets.json` declaring what it patches.
 5. Optionally a checks class in `tools/Verify/Checks/`, registered in `Program.cs`.
+6. `src/<ModName>/workshop-description.txt`, when it is time to publish — copy
+   `tools/description-template.txt` and follow
+   [WORKSHOP-DESCRIPTION-SOP.md](WORKSHOP-DESCRIPTION-SOP.md).
 
 `build.ps1` picks up the new folder automatically.
 

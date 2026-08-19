@@ -78,7 +78,11 @@ image.
 Open the item page and set:
 
 - **Visibility → Public.** Until you do, only you can see it.
-- **Description.** Neither command writes one.
+- **Description.** Neither command writes one. Write it in
+  `src/<ModName>/workshop-description.txt`, run
+  `.\tools\check-description.ps1 -Mod <ModName>`, then paste it in. The rules it must
+  follow — and the research behind them — are in
+  [WORKSHOP-DESCRIPTION-SOP.md](WORKSHOP-DESCRIPTION-SOP.md).
 - **Title,** if you want something other than the raw `UniqueModName`
   (create set it to `PerkCooldownHud`).
 

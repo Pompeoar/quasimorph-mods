@@ -1,0 +1,53 @@
+[b]<One sentence. A verb phrase. What this does, understandable with no context.>[/b]
+
+<Two or three sentences of contrast. What the game does now, what it leaves you guessing
+at or doing by hand, and what this does instead. Name the in-game things by their real
+names. This paragraph plus the hook is what shows above the fold -- roughly 250
+characters -- so everything that decides a subscription lives here.>
+
+[b]<The legend, or the feature list>[/b]
+
+[list]
+[*][b]<state or feature>[/b] -- <what it means>
+[*][b]<state or feature>[/b] -- <what it means>
+[/list]
+
+[b]What it does not change[/b]
+
+<The anxiety-removal paragraph. It only draws / no balance changed. Whether it is safe to
+add and remove mid-campaign. Whether anything of the mod's goes into the save.>
+
+[b]How to use it[/b]
+
+<Hotkeys, where the thing appears, the procedure. Delete this section if there is nothing
+to do but look at it.>
+
+[b]Configuration[/b]
+
+<Delete this whole section unless the user can genuinely change something at runtime. A
+const in a source file is not configuration. If MCM is supported, say so and say whether
+it is required or optional.>
+
+[table]
+[tr][th]Setting[/th][th]Default[/th][th]What it does[/th][/tr]
+[tr][td]<name>[/td][td]<value>[/td][td]<effect>[/td][/tr]
+[/table]
+
+[b]Worth knowing[/b]
+
+[list]
+[*]<A behaviour that is correct but looks wrong.>
+[*]<Another one. If a player would one day file a bug about it, it belongs here.>
+[/list]
+
+[b]Installing[/b]
+
+Subscribe. It uses the game's own mod loader, so there is no BepInEx and nothing to set
+up.
+
+[b]Source[/b]
+
+[url=https://github.com/<owner>/<repo>]<repo></url>
+
+<Credits go in the opening paragraph, not here, if this is a fork or builds on someone
+else's work.>
