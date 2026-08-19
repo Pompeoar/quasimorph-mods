@@ -74,9 +74,22 @@ Dimming is done with a `CanvasGroup` added to the panel rather than by tinting e
 unrelated effects, so the non-cooldown path restores opacity explicitly rather than
 skipping.
 
-Perks with `ICDRecovery` tick their cooldown down faster than one per turn. Because the
-readout is `Duration` itself rather than a count of elapsed turns, it stays truthful
-automatically.
+Perks with `ICDRecovery` tick their cooldown down faster than one per turn (Ritualism
+grants 3-4, Blind Shot 2), and the 16 trigger perks carrying `BActionPointDuration true` —
+Axe Rage and Fire Transfer among them — decrement on every action point rather than only
+at turn start, because `ProcessActionPoint` gates on `IsTurnStart || _isActionPointDuration`.
+Because the readout is `Duration` itself rather than a count of elapsed turns, it stays
+truthful automatically in both cases.
+
+**The displayed number is small.** `Duration` is seeded as `IDuration + ICooldown`, and
+across all 148 `Trigger` perks in `config_mercenaries.txt` the largest that sum reaches is
+**42** (Tactical Camouflage, `IDuration 2 ICooldown 40`). `cortex_bomb` (`ICooldown 99`)
+and `ethereal_barrier` (`40`) look larger but are `ActiveImplant` rows, not `Trigger` rows,
+so they never construct a `PerkTrigger` and never reach this HUD. A three-digit readout is
+therefore not something this mod can produce — an early draft of the store description
+claimed it could, most likely by misreading `IActivation` (120 for Blurred Silhouette, 200
+for Tactical Camouflage), which is the starvation cost of firing the perk and never
+appears on the panel.
 
 ## Building and verifying
 

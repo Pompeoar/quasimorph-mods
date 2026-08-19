@@ -183,6 +183,39 @@ comment before it is written.
 
 ---
 
+## 3a. Every claim gets checked before it ships
+
+The store page is the most-read thing the project produces and the least reviewed. Prose
+about mechanics is exactly where invented numbers survive, because they sound plausible
+and nobody re-derives them.
+
+**Before publishing, each factual sentence gets traced to the config file or the
+decompiled source that backs it.** Not to the tooltip, not to memory of how the mod was
+built, not to an earlier draft of the same description.
+
+The first shipped draft of the PerkCooldownHud page carried three errors of exactly this
+kind, and every one of them read as confident:
+
+- *"nothing tells you how long"* — false. `MercenaryClassScreen` displays
+  `trigger.Duration` as cooldown remaining whenever `!IsInActivePhase`. The number was
+  always available; what vanilla lacks is that number **on the mission HUD**. The correct
+  claim is narrower and is still a good reason to install the mod.
+- *"a number in the hundreds is not a glitch"* — false, and impossible. The panel shows
+  `Duration`, seeded `IDuration + ICooldown`, which across all 148 `Trigger` perks peaks
+  at 42. The two three-digit-looking rows in the config, `cortex_bomb` and
+  `ethereal_barrier`, are `ActiveImplant` and never build a `PerkTrigger`. The claim most
+  likely came from misreading `IActivation`, which is a starvation cost.
+- *"how many turns"* in the hook — wrong for the 16 trigger perks with
+  `BActionPointDuration true`, which tick per action point. "How long" is the honest word.
+
+Two of those contradicted other sentences in the same description, which is the cheapest
+possible tell: **read the finished page as one argument and see whether it disagrees with
+itself.** A description that says "nothing tells you" and then says "the same value your
+character sheet shows" was never checked by anyone.
+
+When the answer is genuinely not in the files, say so, or say nothing. "The files don't
+say" is always available and never embarrassing.
+
 ## 4. Voice
 
 The Quasimorph Workshop has a house style and it is worth matching, because it is what
@@ -314,6 +347,8 @@ present. It cannot check whether the writing is any good.
 
 Then read it back against this list:
 
+- [ ] Every factual sentence traces to a config file or decompiled source (section 3a).
+- [ ] The page does not contradict itself anywhere.
 - [ ] The first sentence is a verb phrase naming what it does, and stands alone.
 - [ ] The first 250 characters would make someone subscribe.
 - [ ] Vanilla behaviour is contrasted explicitly with the mod's.

@@ -1,9 +1,9 @@
-[b]Shows how many turns until a triggered perk is ready again.[/b]
+[b]Shows how long until a triggered perk is ready again.[/b]
 
 Vanilla draws a perk's icon only while the perk is active. The moment the active phase
-ends the icon disappears, and nothing tells you how long until Blurred Silhouette can save
-you a second time. This mod keeps the icon up through the cooldown, dimmed, with the turns
-remaining on it.
+ends the icon disappears, and the mission HUD stops telling you anything -- the countdown
+until Blurred Silhouette can save you a second time exists only on the character screen.
+This mod keeps the icon up through the cooldown, dimmed, with the countdown on it.
 
 [table]
 [tr][th]Perk state[/th][th]Vanilla[/th][th]With this mod[/th][/tr]
@@ -22,12 +22,11 @@ goes into your save -- add it or drop it mid-campaign.
 [b]Worth knowing[/b]
 
 [list]
-[*][b]The number is the game's own countdown[/b], the same one your character sheet shows.
-It cannot drift out of sync.
-[*][b]It can drop by more than one per turn.[/b] Perks with cooldown recovery really do
-tick down faster.
-[*][b]A number in the hundreds is not a glitch.[/b] A few perks count their cooldown in
-action points rather than turns.
+[*][b]The number is the game's own countdown[/b], the same value the character screen
+shows. It cannot drift out of sync.
+[*][b]It can fall by more than one per turn.[/b] Ritualism and Blind Shot shorten
+cooldowns as they run, and perks like Axe Rage tick down every action point rather than
+once per turn.
 [/list]
 
 Built against game build 1.0.1.566s.7e4da55. Source, issues and pull requests:
