@@ -28,7 +28,13 @@
 [CmdletBinding()]
 param(
     [string]$SourceDir = 'C:\Users\pompe\Downloads\Examples',
-    [string]$OutDir = (Join-Path (Split-Path -Parent $PSScriptRoot) 'src\PerkCooldownHud')
+    [string]$OutDir = (Join-Path (Split-Path -Parent $PSScriptRoot) 'src\PerkCooldownHud'),
+
+    # The Steam Workshop display title, one array element per rendered line. This is the
+    # store title, NOT UniqueModName - the two are deliberately different. Keep it in step
+    # with the title on the item page; a thumbnail that names the mod something else is the
+    # single most obvious way for a listing to look abandoned.
+    [string[]]$TitleLines = @('PERK COOLDOWN', 'DISPLAY')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -120,8 +126,11 @@ try {
     $g = New-Graphics $bmp
     $g.Clear($bg)
 
-    Add-Text $g 'PERK COOLDOWN' 256 22 27 $yellow
-    Add-Text $g 'HUD' 256 56 27 $yellow
+    $titleY = 22
+    foreach ($line in $TitleLines) {
+        Add-Text $g $line 256 $titleY 27 $yellow
+        $titleY += 34
+    }
 
     $barW = 480
     $barH = [int]($afterBar.Height * ($barW / $afterBar.Width))
