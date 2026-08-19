@@ -82,6 +82,24 @@ Open the item page and set:
 - **Title,** if you want something other than the raw `UniqueModName`
   (create set it to `PerkCooldownHud`).
 
+## Steam tags
+
+`SteamTags` in `modmanifest.json` is applied by `mod_updateworkshopitem` only (never by
+create). The valid values are configured on Steamworks by the developer, not in the game's
+code, so they can only be read off the Workshop browse page's filter sidebar:
+
+| Category | Values |
+|---|---|
+| Compatible Version | `1.0` `0.9.1` `0.9` `0.8.5` `0.8` `0.7` |
+| Type | `New Content` `Quality of Life` `UI` `Graphical` `Gameplay Tweaks` `Overhaul` `Utility` `Other` |
+
+**The version tag is not optional in practice.** Browsers routinely filter by Compatible
+Version, and an item with no version tag is excluded from every one of those filters — it
+simply does not appear, even for the version it actually supports. PerkCooldownHud shipped
+its first day tagged only `UI` and was invisible to anyone filtering on `1.0`.
+
+Re-run the update command after changing tags; the manifest in `dist\` is what gets read.
+
 ## Published item ids
 
 Keep these here so an update never depends on remembering one. `mod_listworkshopitems`
