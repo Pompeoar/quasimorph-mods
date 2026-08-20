@@ -1,0 +1,90 @@
+{
+  "description": "Members BaneCounter patches. Harmony binds by name at runtime, so a rename in a game update would otherwise be a silent no-op. Bane is called Curse throughout the assembly; only localization says 'Bane'.",
+  "types": [
+    {
+      "name": "MGSC.CurseEffect",
+      "baseType": "MGSC.BaseEffect",
+      "interfaces": ["MGSC.IEffectWithView"],
+      "properties": [
+        { "name": "ViewValue", "type": "Single", "why": "postfixed to CurseLevel; vanilla reports CursesPower.Count, a 1-5 tier count" },
+        { "name": "BlinkOnChange", "type": "Boolean", "why": "optionally silenced, since the value now changes on every Pact cast" },
+        { "name": "Show", "type": "Boolean", "why": "gates the icon on CursesPower.Count > 0; unpatched, but the mod depends on it being true whenever CurseLevel > 0" }
+      ]
+    },
+    {
+      "name": "MGSC.BaseEffect",
+      "fields": [
+        { "name": "_creature", "type": "Creature", "why": "reached by FieldRefAccess to find the Mercenary behind the effect" }
+      ]
+    },
+    {
+      "name": "MGSC.CurseData",
+      "fields": [
+        { "name": "CurseLevel", "type": "Int32", "why": "the number the whole mod exists to display" },
+        { "name": "CurrentBramfatura", "type": "String", "why": "selects which activation ladder applies" },
+        { "name": "CursesPower", "type": "Dictionary`2", "why": "vanilla's ViewValue source; its Count is what the icon showed before" }
+      ]
+    },
+    {
+      "name": "MGSC.CurseRecord",
+      "properties": [
+        { "name": "BramfaturaId", "type": "String" },
+        { "name": "ActivationLevel", "type": "Int32", "why": "the thresholds - 1, 200, 400, 700, 1000 - the tooltip counts toward" }
+      ]
+    },
+    {
+      "name": "MGSC.CommonEffectPanel",
+      "methods": [
+        { "name": "InitTooltip", "params": [], "why": "postfixed to append the level rows under vanilla's curse list" }
+      ],
+      "fields": [
+        { "name": "_effectWithViews", "type": "List`1", "why": "identifies which effect the hovered panel is showing" },
+        { "name": "_createdTooltip", "type": "Boolean", "why": "proves vanilla built a tooltip to append to" }
+      ]
+    },
+    {
+      "name": "MGSC.TooltipFactory",
+      "methods": [
+        { "name": "AddPanelToTooltip", "params": [], "why": "appends a row to the tooltip currently being built" },
+        { "name": "BuildMercenaryTooltip", "params": ["Mercenary", "MercenaryProfileRecord"], "why": "postfixed to add Bane rows to the operator tooltip" }
+      ]
+    },
+    {
+      "name": "MGSC.MercenaryPanel",
+      "methods": [
+        { "name": "Initialize", "params": ["SpaceTime", "Mercenary", "MercenaryProfileRecord", "Mode"], "why": "postfixed to attach and refresh the roster Bane icon" }
+      ],
+      "fields": [
+        { "name": "_implantsIcon", "type": "MercenaryImplantsIcon", "why": "cloned as the Bane diamond so the new icon inherits prefab layout" },
+        { "name": "_mercClass", "type": "TextMeshProUGUI", "why": "font donor for the roster number; avoids shipping a font asset" }
+      ]
+    },
+    {
+      "name": "MGSC.MercenaryImplantsIcon",
+      "fields": [
+        { "name": "_icon", "type": "Image", "why": "the sprite swapped to the curse icon on the clone" },
+        { "name": "_selectionBorder", "type": "Image", "why": "hidden on the clone; it is a hover affordance for a control the clone is not" }
+      ]
+    },
+    {
+      "name": "MGSC.Mercenary",
+      "fields": [
+        { "name": "CurseData", "type": "CurseData", "why": "per-operator Bane, read on the roster where no Player exists yet" }
+      ]
+    },
+    {
+      "name": "MGSC.TooltipProperty",
+      "methods": [
+        { "name": "SetIcon", "params": ["String"] },
+        { "name": "SetName", "params": ["String"] },
+        { "name": "LocalizeName", "params": ["String"] },
+        { "name": "SetValue", "params": ["Int32"] },
+        { "name": "SetNameColor", "params": ["Color"] },
+        { "name": "SetValueColor", "params": ["Color"] }
+      ]
+    },
+    {
+      "name": "MGSC.IEffectWithView"
+    }
+  ]
+}

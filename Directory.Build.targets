@@ -38,6 +38,11 @@
       <HintPath>$(GameManagedDir)\UnityEngine.AudioModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- TextMeshProUGUI; every text field in the game's UI is TMP, not UnityEngine.UI.Text. -->
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>$(GameManagedDir)\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <Target Name="CheckGameManagedDir" BeforeTargets="ResolveAssemblyReferences" Condition="'$(IsModProject)' != 'false'">
