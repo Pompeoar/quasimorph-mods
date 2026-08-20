@@ -9,7 +9,6 @@ Issues and pull requests welcome at
 | Mod | Workshop | What it does |
 |---|---|---|
 | [PerkCooldownHud](src/PerkCooldownHud) | [3785994116](https://steamcommunity.com/sharedfiles/filedetails/?id=3785994116) | Shows how many turns until a triggered perk is ready again |
-| [QuickRecycle](src/QuickRecycle) | not published yet | Ctrl+Shift sends cargo straight to the recycler, no dragging |
 
 Publishing one of these: **[PUBLISHING.md](PUBLISHING.md)**. Writing its store page:
 **[WORKSHOP-DESCRIPTION-SOP.md](WORKSHOP-DESCRIPTION-SOP.md)**.
