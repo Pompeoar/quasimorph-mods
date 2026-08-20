@@ -60,6 +60,6 @@ namespace BaneCounter
         /// costs a full build-deploy-restart cycle per guess; having the game describe it
         /// once costs one.
         /// </summary>
-        public static readonly bool DebugLayout = true;
+        public static readonly bool DebugLayout = false;
     }
 }
