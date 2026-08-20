@@ -51,5 +51,15 @@ namespace BaneCounter
 
         /// <summary>Size of the roster number relative to the row's class label.</summary>
         public static readonly float RosterLabelScale = 0.9f;
+
+        /// <summary>
+        /// Log the roster row's layout once per session.
+        ///
+        /// The icon row is prefab-authored, so its container, layout group and sizing are
+        /// serialized data that cannot be read from the decompiled source. Guessing at it
+        /// costs a full build-deploy-restart cycle per guess; having the game describe it
+        /// once costs one.
+        /// </summary>
+        public static readonly bool DebugLayout = true;
     }
 }
