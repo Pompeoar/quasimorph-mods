@@ -49,8 +49,11 @@ namespace QuickRecycle.Patches
         /// Returns true when this gesture was handled here and vanilla should be skipped.
         /// Every rejection returns false so the original Ctrl behaviour still runs - a
         /// modifier that silently does nothing is worse than one that does the old thing.
+        ///
+        /// Shared by both entry points: the Ctrl hover/click callback and the BeginDrag
+        /// interception in ClickSweepPatches. One set of rules, one set of refusals.
         /// </summary>
-        private static bool TrySweepToRecycler(ScreenWithShipCargo screen, ItemSlot slot)
+        internal static bool TrySweepToRecycler(ScreenWithShipCargo screen, ItemSlot slot)
         {
             if (Config.RequireShift && !InputHelper.GetKey(KeyCode.LeftShift))
             {

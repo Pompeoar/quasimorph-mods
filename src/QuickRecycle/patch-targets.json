@@ -9,7 +9,9 @@
           "params": ["ItemSlot"],
           "why": "the Ctrl gesture seam; prefixed to divert Ctrl+Shift to the recycler"
         },
-        { "name": "RefreshView", "params": [], "why": "redraws the grid after an item moves" }
+        { "name": "RefreshView", "params": [], "why": "redraws the grid after an item moves" },
+        { "name": "Configure", "params": [], "why": "postfixed to record which cargo screen is open" },
+        { "name": "OnDisable", "params": [], "why": "postfixed to clear that reference when the screen closes" }
       ],
       "fields": [
         {
@@ -79,6 +81,16 @@
       ],
       "methods": [
         { "name": "Remove", "params": ["BasePickupItem", "Boolean"] }
+      ]
+    },
+    {
+      "name": "MGSC.DragController",
+      "methods": [
+        {
+          "name": "BeginDrag",
+          "params": ["ItemSlot", "DragMode"],
+          "why": "prefixed so Ctrl+Shift+click sweeps too; with fast transfer on, a click can never reach the control-click callback"
+        }
       ]
     },
     {
