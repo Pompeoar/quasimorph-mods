@@ -55,16 +55,18 @@ namespace QuickRecycle.Patches
         /// </summary>
         internal static bool TrySweepToRecycler(ScreenWithShipCargo screen, ItemSlot slot)
         {
+            Trace("gesture reached " + screen.GetType().Name);
+
             if (Config.RequireShift && !InputHelper.GetKey(KeyCode.LeftShift))
             {
-                return false;
+                return Decline("Ctrl is held but Shift is not");
             }
 
             var cargo = MagnumCargoRef(screen);
             var ship = MagnumSpaceshipRef(screen);
             if (cargo == null || ship == null)
             {
-                return false;
+                return Decline("screen has no cargo/spaceship reference");
             }
 
             // The same condition ScreenWithShipCargo.Configure uses to decide whether the
@@ -72,24 +74,24 @@ namespace QuickRecycle.Patches
             // anything, so leave Ctrl doing its normal job.
             if (!ship.HasStoreConstructorDepartment)
             {
-                return false;
+                return Decline("no store constructor department, so no recycling tab");
             }
 
             var item = slot == null ? null : slot.Item;
             if (item == null || item.Storage == null)
             {
-                return false;
+                return Decline("empty slot or item with no storage");
             }
 
             var target = cargo.RecyclingStorage;
             if (item.Storage == target)
             {
-                return false;
+                return Decline("item is already in the recycler");
             }
 
             if (Config.CargoOnly && item.Storage.Source != ItemStorageSource.ShipCargo)
             {
-                return false;
+                return Decline("item is in " + item.Storage.Source + ", not ShipCargo");
             }
 
             // The gotcha: while a batch is running the recycler is sealed. ItemTab.
@@ -99,6 +101,7 @@ namespace QuickRecycle.Patches
             // without saying so. Refuse audibly and let the player see the timer.
             if (cargo.RecyclingInProgress)
             {
+                Trace("refused: a batch is already recycling");
                 PlayDenied();
                 return true;
             }
@@ -108,6 +111,7 @@ namespace QuickRecycle.Patches
             // ItemInteractionSystem.Repair also refuses to touch.
             if (ItemInteractionSystem.IsQuestItem(item) || item.Locked)
             {
+                Trace("refused: quest or locked item");
                 PlayDenied();
                 return true;
             }
@@ -122,7 +126,32 @@ namespace QuickRecycle.Patches
                 SingletonMonoBehaviour<SoundsStorage>.Instance.TakeItem, true);
 
             screen.RefreshView();
+            Trace("swept " + item.Id + " to the recycler");
             return true;
+        }
+
+        /// <summary>
+        /// Records a refusal and returns false. Deduplicated because the hover path calls
+        /// this every frame the cursor sits on a slot; without that, one second of hovering
+        /// buries the log in a thousand copies of the same line.
+        /// </summary>
+        private static bool Decline(string reason)
+        {
+            Trace("declined: " + reason);
+            return false;
+        }
+
+        private static string _lastTrace;
+
+        private static void Trace(string message)
+        {
+            if (!Config.DebugLog || message == _lastTrace)
+            {
+                return;
+            }
+
+            _lastTrace = message;
+            ModEntry.Log(message);
         }
 
         /// <summary>

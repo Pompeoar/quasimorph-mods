@@ -27,5 +27,16 @@ namespace QuickRecycle
 
         /// <summary>Seconds between repeats of the refusal sound, so a sweep cannot machine-gun it.</summary>
         public const float DeniedSoundCooldown = 0.35f;
+
+        /// <summary>
+        /// Log why a sweep was refused. The sweep has eight separate reasons to decline and
+        /// all of them look identical from the player's chair: nothing happens. Guessing
+        /// between them from a description of the symptom is slow and unreliable, so the
+        /// mod can name the one it took instead.
+        ///
+        /// On while the gesture is still being shaken out; turn off once it is trusted, as
+        /// this fires from a hover path that runs every frame.
+        /// </summary>
+        public const bool DebugLog = true;
     }
 }

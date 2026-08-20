@@ -37,6 +37,16 @@ namespace QuickRecycle.Patches
                     return true;
                 }
 
+                // Ctrl must be tested here. TrySweepToRecycler only checks Shift, because
+                // its original caller is the *control*-click callback - Ctrl was already
+                // proven by the time it ran. Reached from BeginDrag nothing has proven it,
+                // so without this a plain Shift+click would sweep, and Shift+click is a
+                // vanilla gesture the player already uses.
+                if (!InputHelper.GetKey(KeyCode.LeftControl))
+                {
+                    return true;
+                }
+
                 // Same helper the hover path uses, so both gestures share one set of rules
                 // and one set of refusals rather than drifting apart.
                 return !RecycleSweepPatches.TrySweepToRecycler(screen, draggableSlot);
