@@ -140,6 +140,7 @@ recovers them from Steam if this list is ever lost.
 | Mod | Item id |
 |---|---|
 | PerkCooldownHud | `3785994116` |
+| BaneCounter | `3787606598` |
 
 ## Updating later
 
