@@ -1,0 +1,29 @@
+[b]Shows your operator's real Bane level as a number -- on the mission HUD, and on every operator in the roster.[/b]
+
+Vanilla draws a Bane icon once you are cursed, but the number on it is the count of active curse tiers, 1 to 5. It is not your Bane level, and nothing else in the game shows that level either. So you cast a Pact, watch the icon not change, and have no idea whether you are sitting at 40 or at 390.
+
+[b]Where the number shows up[/b]
+
+[list]
+[*][b]Mission HUD[/b] -- the Bane debuff icon prints your actual level instead of the tier count.
+[*][b]Operator roster[/b] -- a Bane diamond on each row of Manage Operators, and on the operator list you pick from when starting a mission.
+[*][b]Tooltips[/b] -- hover either one for [i]Bane level[/i], [i]Next curse at[/i] and [i]Bane to go[/i]. The operator stat tooltip gets the same three rows.
+[/list]
+
+[i]Bane to go[/i] is there because the gap matters on its own. A curse's strength scales with how far you are between the threshold that unlocked it and the next one, so Bane short of the next tier is not sitting idle -- it is steadily making the curses you already carry worse.
+
+[b]What it does not change[/b]
+
+It only draws. No Bane is gained, lost, rounded or recalculated by this mod, and no curse triggers any earlier. It reads the Bane the game is already tracking and prints it. Nothing of the mod's goes into your save, so it is safe to add or remove mid-campaign -- uninstall and the icons simply stop being drawn.
+
+[b]Worth knowing[/b]
+
+[list]
+[*]Operators at 0 Bane get no roster icon. That is deliberate, so the row stays scannable.
+[*]Bane comes off only after a [b]completed[/b] mission, and only once the Morphanal [i]Bane after missions[/i] research is bought. Ships start at zero recovery.
+[*]The number changes on every Pact cast, so the icon's stock flash-and-chime fires far more often than it used to. That is vanilla feedback, newly relevant.
+[/list]
+
+[b]Source[/b]
+
+[url=https://github.com/Pompeoar/quasimorph-mods]github.com/Pompeoar/quasimorph-mods[/url] -- issues and pull requests welcome. If something looks wrong, say so in the comments, or open an issue with a screenshot.

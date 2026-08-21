@@ -30,7 +30,7 @@ src/<ModName>/               one folder per mod = one Workshop item
 dev/<ModName>/               local-only helpers; built like mods, never published
 tools/Verify/                dev-only verifier, never ships
 tools/core-targets.json      mod-loader surface every mod depends on
-tools/make-images.ps1        builds Workshop images from in-game captures
+tools/make-images-*.ps1      builds Workshop images from in-game captures, one per mod
 tools/check-description.ps1  lints workshop-description.txt against the SOP
 tools/description-template.txt  skeleton for a new mod's store page
 dist/<ModName>/              exactly what gets uploaded to the Workshop

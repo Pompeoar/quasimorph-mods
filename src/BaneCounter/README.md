@@ -12,8 +12,10 @@ which is 1 to 5. This shows `CurseLevel`, the real value, which runs 0 to 1000+.
 the current Bane level, the level the next curse activates at, and the gap between them.
 
 **On the roster.** Manage Operators gets a Bane diamond per row, with the level on it, and
-the same three rows are appended to the operator tooltip. Bane is a property of the clone
-you're choosing, so it belongs next to class, equipment and augments.
+the same three rows are appended to the operator tooltip. The same `MercenaryPanel` backs
+`SelectMercenaryScreen`, so the icon is also there when you pick who deploys — which is the
+moment the number actually changes a decision. Bane is a property of the clone you're
+choosing, so it belongs next to class, equipment and augments.
 
 ## How Bane actually works
 
@@ -23,9 +25,19 @@ localization does. That is why it looks undocumented.
 - It rises **per Pact cast**, not per mission. `Mercenary.ResetPact()` adds
   `round(CurseValue x (1 - FPactDebuff))`. Across the 142 Pacts the cost ranges from **7**
   (`flauros_barkskin`) to **175** (`mars_great_awakening`, `venus_hemostatic_shock`).
-- It falls **per mission**, by your ship's `MorphanalPactRecovery` (`MissionSystem`), and
-  from the item path in `ItemInteractionSystem`.
-- Curses activate at **1, 200, 400, 700 and 1000** for every patron in the shipped data.
+- It falls **only on a mission you completed** — `MissionSystem` gates the reduction on
+  `WinCondition.WinConditionsPassed`, so failing or evacuating removes nothing.
+- The amount it falls by is your ship's `MorphanalPactRecovery`, and **that defaults to 0**.
+  It is absent from `#magnum_default_params`, so `ModifyWithParameter` leaves it at zero
+  until the single `moranl_pact_recovery` research node ("Bane after missions", in the
+  Morphanal department, parented to `moranl_upgrade_stability`) applies `+ 100`. Before that
+  research, Bane genuinely never goes down from playing missions — which is the most likely
+  thing for a player to mistake for a bug in this mod.
+- One item also reduces it: `quasiresearch_disk` carries `UseEffect DecreaseCurseLevel 300`,
+  applied by `ItemInteractionSystem.UseDevice` to the operator in the mission.
+- Curses activate at **1, 200, 400, 700 and 1000** for every patron in the shipped data —
+  45 rows, nine patrons, five steps each. The mod reads them from `Data.Curses.Records` at
+  runtime anyway, per patron, because that is data rather than a guarantee.
 - Between two thresholds, a curse's power is an `InverseLerp` across the gap
   (`CurseSystem.RefreshCursesPower`). **Bane below the next threshold is not wasted** — it is
   continuously strengthening the curses already on you. That is why the tooltip shows the

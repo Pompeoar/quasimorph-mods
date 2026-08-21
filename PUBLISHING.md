@@ -159,7 +159,7 @@ site.
 
 ## The preview image and gallery
 
-`tools/make-images.ps1` builds `src/PerkCooldownHud/thumbnail.png` and the
+`tools/make-images-perkcooldownhud.ps1` builds `src/PerkCooldownHud/thumbnail.png` and the
 `src/PerkCooldownHud/workshop-images/` gallery from in-game captures. `build.ps1` stages
 `thumbnail.png` automatically; the gallery images are **attached by hand on the item page**,
 since no console command uploads them.

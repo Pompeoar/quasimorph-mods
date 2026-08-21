@@ -314,8 +314,9 @@ The images are read before the text, so they are part of the description.
   showcased two vanilla damage shields, because the game draws those with a yellow icon
   fill and this mod draws a yellow border — indistinguishable at a glance. See
   `PUBLISHING.md`.
-- `tools/make-images.ps1` builds the thumbnail and gallery reproducibly from raw captures.
-  Extend it per mod rather than hand-cropping.
+- `tools/make-images-<modname>.ps1` builds the thumbnail and gallery reproducibly from raw
+  captures. Each mod gets its own, because the crop rectangles are measured per capture.
+  Copy the nearest existing one rather than hand-cropping.
 
 ---
 
