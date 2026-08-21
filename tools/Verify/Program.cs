@@ -89,6 +89,7 @@ foreach (var modDir in mods)
 var allChecks = new List<IModChecks>
 {
     new PerkCooldownHudChecks(),
+    new TradeShuttlePlannerChecks(),
 };
 
 foreach (var modChecks in allChecks)

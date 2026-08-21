@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Shared settings and the game references live in ..\..\Directory.Build.props -->
+
+  <PropertyGroup>
+    <AssemblyName>TradeShuttlePlanner</AssemblyName>
+    <RootNamespace>TradeShuttlePlanner</RootNamespace>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- UnityEngine.Input, for the hotkey poll. Not in Directory.Build.targets because this
+         is the only mod here that reads raw input rather than hooking a UI control. -->
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(GameManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+</Project>

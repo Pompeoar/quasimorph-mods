@@ -1,0 +1,121 @@
+{
+  "description": "Game members TradeShuttlePlanner binds to. Most of this mod compiles against the public API, so a rename would be a build error. The exception is TradeSystem.SimulateTradeShuttlePreviewExchange, which is private and reached by reflection: if it is renamed or its signature moves, the mod silently degrades to value-only output with no error anywhere. That single member is the main reason this file exists. The rest are members whose meaning - not just their existence - the mod's arithmetic depends on.",
+  "types": [
+    {
+      "name": "MGSC.TradeSystem",
+      "methods": [
+        {
+          "name": "SimulateTradeShuttlePreviewExchange",
+          "params": ["MagnumProgression", "TradeShuttleDepartment", "Factions", "ItemsPrices", "Difficulty", "IEnumerable`1"],
+          "why": "PRIVATE, reached by reflection. The only entry point that returns the resulting cargo list rather than just its total value, which is what lets the mod name the items coming back. Renaming it degrades the mod silently."
+        },
+        {
+          "name": "GetTradeShuttleCargoWorldPrice",
+          "params": ["ItemsPrices", "IEnumerable`1"],
+          "why": "values both the outbound hold and the simulated return, exactly as the vanilla PROFIT readout does"
+        },
+        {
+          "name": "HasTradeShuttleAvailableStations",
+          "params": ["MagnumProgression", "Factions", "TradeShuttleMode", "IEnumerable`1"],
+          "why": "skips orbits that will not trade with the player at all, before spending a simulation on them"
+        },
+        {
+          "name": "IsValidItem",
+          "params": ["Faction", "Station", "String"],
+          "why": "the gate deciding whether a station consumes an item; drives the dead-weight report"
+        },
+        {
+          "name": "GetItemBuyPrice",
+          "params": ["MagnumProgression", "Faction", "Station", "ItemsPrices", "String", "Boolean"],
+          "why": "price at the player's current reputation, for the where-to-buy sweep and its ratio ranking"
+        },
+        {
+          "name": "GetTradeShuttleAvailableStations",
+          "params": ["MagnumProgression", "Factions", "TradeShuttleMode", "IEnumerable`1"],
+          "why": "not called, but Planner.IsShuttleEligible reimplements its filter (CanBeTraded, the reputation floor, the contraband bypass, and the Barter-mode proxy-corp exclusion). If this drifts, the dead-weight report drifts with it."
+        }
+      ]
+    },
+    {
+      "name": "MGSC.TradeShuttleDepartment",
+      "baseType": "MGSC.MagnumDepartment",
+      "fields": [
+        { "name": "ShuttleInMove", "type": "Boolean", "why": "refuses to plan while the shuttle is already out" },
+        { "name": "TradeShuttleStorage", "type": "ItemStorage", "why": "the hold being planned for" },
+        { "name": "Mode", "type": "TradeShuttleMode", "why": "read, not written; the scan follows the player's chosen mode and only sweeps categories in Barter" },
+        { "name": "SelectedBarterCategoryId", "type": "String", "setter": true, "why": "the one live field the scan writes, cycled through every category and restored in a finally block" }
+      ]
+    },
+    {
+      "name": "MGSC.GlobalSettings",
+      "properties": [
+        { "name": "TradeMinReputationToExchange", "type": "Int32", "why": "the reputation floor mirrored in IsShuttleEligible" },
+        { "name": "TradeShuttleBarterPriorityPercent", "type": "Single", "why": "not read in code, but the 60% figure the report's explanatory text quotes" }
+      ]
+    },
+    {
+      "name": "MGSC.Station",
+      "fields": [
+        { "name": "SpaceObjectId", "type": "String", "why": "groups stations into the orbits the shuttle can be sent to" },
+        { "name": "OwnerFactionId", "type": "String", "why": "resolves the faction whose reputation and prices apply" },
+        { "name": "InternalStorage", "type": "ItemStorage", "why": "the sale stock swept by the where-to-buy report" }
+      ]
+    },
+    {
+      "name": "MGSC.Faction",
+      "properties": [
+        { "name": "Record", "type": "FactionRecord", "why": "carries CanBeTraded" }
+      ],
+      "fields": [
+        { "name": "PlayerReputation", "type": "Single", "why": "compared against the reputation floor" }
+      ]
+    },
+    {
+      "name": "MGSC.FactionRecord",
+      "properties": [
+        { "name": "CanBeTraded", "type": "Boolean", "why": "first term of the station eligibility filter" }
+      ]
+    },
+    {
+      "name": "MGSC.MagnumProgression",
+      "properties": [
+        { "name": "TradeShuttleContraband", "type": "Boolean", "why": "bypasses the reputation floor entirely" }
+      ]
+    },
+    {
+      "name": "MGSC.ProxyCorpDepartment",
+      "properties": [
+        { "name": "ProxyFactionId", "type": "String", "why": "Barter mode refuses to deal with the player's own proxy corporation, so its stations must not count as buyers" }
+      ]
+    },
+    {
+      "name": "MGSC.TravelMetadata",
+      "fields": [
+        { "name": "CurrentSpaceObject", "type": "String", "why": "the shuttle cannot be sent to the orbit it is already in" }
+      ]
+    },
+    {
+      "name": "MGSC.BasePickupItem",
+      "properties": [
+        { "name": "InventoryWidthSize", "type": "Int32", "why": "cell usage in the hold summary" },
+        { "name": "Id", "type": "String" },
+        { "name": "StackCount", "type": "Int16", "why": "quantities in the returning-items and dead-weight lists" }
+      ]
+    },
+    {
+      "name": "MGSC.TradeShuttleBarterCategoryRecord",
+      "properties": [
+        { "name": "ItemClasses", "type": "List`1", "why": "maps an item's class to the dropdown option that would prioritise it" }
+      ]
+    },
+    {
+      "name": "MGSC.TradeShuttleMode"
+    },
+    {
+      "name": "MGSC.AlertDialogWindow",
+      "methods": [
+        { "name": "Configure", "params": ["String", "Action"], "why": "the in-game summary popup; a single TMP caption, which is why the full report goes to a file" }
+      ]
+    }
+  ]
+}
