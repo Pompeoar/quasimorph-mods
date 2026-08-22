@@ -56,8 +56,43 @@ budget, not 300.** Everything that decides a subscription must land inside it.
 
 ## 3. Required structure
 
-Sections marked **[M]** are mandatory. Omit an optional section entirely rather than
-writing a stub for it — an empty "Compatibility" heading is worse than no heading.
+### First: size the page to the mod
+
+**The structure below is a ceiling, not a quota.** A mod with one idea gets a page with one
+idea. If the whole mod is "it sorts a list", four headings and eleven bullets do not make it
+look thorough — they make it look like the author could not tell which fact mattered, and
+they bury the one sentence that sells it.
+
+This is the failure mode this repo keeps repeating, so it gets the strongest form of words
+available: **a section is mandatory only when the mod gives it something to say.** The
+mandatory four exist because most mods have a real answer for each. Where the honest answer
+is one clause, write the clause inline and drop the heading. Where there is no answer at
+all, drop the section.
+
+Concretely, for a simple mod:
+
+- **Hook and Contrast merge into two or three sentences** with no heading between them.
+- **"The feature" disappears** when the hook already described it. A list of one is not a
+  list, and "what gets sorted: the perk picker, the talent picker" is the hook again with
+  ceremony.
+- **Scope collapses to one sentence.** "It only reorders. Nothing is added, removed or
+  rebalanced, and nothing of the mod's goes into your save." That is the entire anxiety
+  answer; the paragraph explaining which parts of the vanilla pipeline are untouched is
+  reassurance nobody asked for, and it reads as protesting too much.
+- **Notes is usually empty**, and section 7's test is the reason: it admits only things a
+  player would file a bug about. Internal ids, deduplication and failure-latch behaviour
+  are repo README material. The reader wants to know it works, not how.
+
+The test before every sentence survives: **would the reader act differently for having read
+it?** If not, cut it. A 500-character page for a 500-character mod is the correct outcome,
+not an incomplete one — PerkListSort's shipped page is 503 characters and fits entirely
+above the fold, which is the best position a description can be in.
+
+### The sections
+
+Sections marked **[M]** are mandatory *where the mod has something to say for them*, per the
+rule above. Omit an optional section entirely rather than writing a stub for it — an empty
+"Compatibility" heading is worse than no heading.
 
 ```
 [M]  1. Hook          bold, one sentence, what it does
@@ -348,6 +383,8 @@ present. It cannot check whether the writing is any good.
 
 Then read it back against this list:
 
+- [ ] **Every section earns its place** — no heading exists because the template had one
+      (section 3, "size the page to the mod"). A simple mod gets a short page.
 - [ ] Every factual sentence traces to a config file or decompiled source (section 3a).
 - [ ] The page does not contradict itself anywhere.
 - [ ] The first sentence is a verb phrase naming what it does, and stands alone.

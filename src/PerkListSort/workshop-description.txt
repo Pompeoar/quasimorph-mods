@@ -1,26 +1,9 @@
-[b]Sorts the perk list alphabetically when you pick perks for a class project.[/b]
+[b]Sorts the perk and talent pickers alphabetically.[/b]
 
-Vanilla's order looks arbitrary, and it is not unlock order -- the game walks its class table in a fixed internal order and inserts each row above the last, so the list comes out reversed. Finding one perk means reading every row, every time.
+Vanilla's order is neither alphabetical nor unlock order -- it is the game's internal class table, reversed. Finding one perk means reading every row.
 
-[b]What gets sorted[/b]
-
-[list]
-[*][b]The perk picker[/b] -- every perk slot on a class project, A to Z.
-[*][b]The talent picker[/b] -- the same window, so it gets the same treatment.
-[/list]
-
-[b]What it does not change[/b]
-
-It only reorders. No perk is added, removed, hidden or made cheaper, and the list still holds exactly what it held before. Which classes contribute, which perks are excluded, and the removal of duplicates are all vanilla and untouched -- this runs after the list is built and does nothing but rearrange it. Nothing of the mod's goes into your save, so it is safe to add or remove mid-campaign.
-
-[b]Worth knowing[/b]
-
-[list]
-[*]Sorting is by the name on the row, not the internal id. Training sorts under T, where you would look for it, rather than under the M of military_training.
-[*]A perk shared by two unlocked classes still appears once. That deduplication is vanilla; this only changes where the single row lands.
-[*]If sorting ever fails it switches itself off for the session and the list falls back to vanilla order, with a line in the log. An ugly list beats an unusable one.
-[/list]
+It only reorders. Nothing is added, removed or rebalanced, and nothing of the mod's goes into your save, so it is safe to add or remove mid-campaign.
 
 [b]Source[/b]
 
-[url=https://github.com/Pompeoar/quasimorph-mods]github.com/Pompeoar/quasimorph-mods[/url] -- issues and pull requests welcome. If something looks wrong, say so in the comments, or open an issue with a screenshot.
+[url=https://github.com/Pompeoar/quasimorph-mods]github.com/Pompeoar/quasimorph-mods[/url] -- issues and pull requests welcome.
