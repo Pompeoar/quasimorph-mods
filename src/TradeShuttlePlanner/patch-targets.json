@@ -120,8 +120,54 @@
     },
     {
       "name": "MGSC.TradeShuttleScreen",
+      "baseType": "MGSC.ScreenWithShipCargo",
+      "fields": [
+        { "name": "_cargoPageButton", "type": "IconTabButton", "why": "PLANNER TAB. Reset to Inactive when the planner tab is shown, so tab exclusivity is manual, mirroring the vanilla ShowPage" },
+        { "name": "_lastTripReportPageButton", "type": "IconTabButton", "why": "PLANNER TAB. Cloned to make the third tab button, and reset to Inactive when the planner tab is shown" },
+        { "name": "_cargoPageRoot", "type": "GameObject", "why": "PLANNER TAB. Deactivated when the planner page is shown" },
+        { "name": "_lastTripReportPageRoot", "type": "GameObject", "why": "PLANNER TAB. Cloned to make the planner page root, and deactivated when the planner page is shown" },
+        { "name": "_unloadAllButton", "type": "CommonButton", "why": "PLANNER TAB. Cloned as the template for the two load buttons and every clickable station row" }
+      ],
       "methods": [
-        { "name": "RefreshView", "params": [], "why": "the hold is changed underneath the open screen, so it has to be told to redraw" }
+        { "name": "RefreshView", "params": [], "why": "the hold is changed underneath the open screen, so it has to be told to redraw" },
+        { "name": "Awake", "params": [], "why": "PLANNER TAB. HARMONY POSTFIX. Where the third tab and its page root are built, once, from the screen's own serialized widgets" },
+        { "name": "ShowPage", "params": ["TradeShuttleScreenPage"], "why": "PLANNER TAB. HARMONY POSTFIX. Selecting either stock tab must hide the planner page and reset its tab button, since there is no tab-group component doing it" }
+      ]
+    },
+    {
+      "name": "MGSC.IconTabButton",
+      "methods": [
+        { "name": "SetState", "params": ["IconTabButtonState"], "why": "PLANNER TAB. Drives the planner tab's Active/Inactive visual, exactly as ShowPage does for the two stock tabs" }
+      ]
+    },
+    {
+      "name": "MGSC.IconTabButtonState"
+    },
+    {
+      "name": "MGSC.TradeShuttleScreenPage"
+    },
+    {
+      "name": "MGSC.CommonButton",
+      "fields": [
+        { "name": "captionText", "type": "TextMeshProUGUI", "why": "PLANNER TAB. Fallback caption target for cloned buttons whose LocalizableLabel is not wired" }
+      ],
+      "methods": [
+        { "name": "SetRawCaption", "params": ["String"], "why": "PLANNER TAB. Sets each cloned button/row caption to raw rich text, clearing the localization tag so it is not re-applied on enable" },
+        { "name": "SetInteractable", "params": ["Boolean", "Boolean"], "why": "PLANNER TAB. Greys out the load buttons until a target good and a destination are chosen" }
+      ]
+    },
+    {
+      "name": "MGSC.TradeShuttleLastReportPage",
+      "fields": [
+        { "name": "_tripRootCaption", "type": "TextMeshProUGUI", "why": "PLANNER TAB. Read from the cloned page for the header text block" },
+        { "name": "_reportRoot", "type": "RectTransform", "why": "PLANNER TAB. Read from the cloned page as the parent for the preview text, load buttons and station rows" },
+        { "name": "_emptyState", "type": "GameObject", "why": "PLANNER TAB. Deactivated on the clone so the report page's empty-state does not show through the planner" }
+      ]
+    },
+    {
+      "name": "MGSC.Colors",
+      "methods": [
+        { "name": "GetFactionColorByReputation", "params": ["Single"], "why": "PLANNER TAB. Colour-codes each station row by the player's reputation with that faction, matching the game's own thresholds" }
       ]
     },
     {

@@ -399,7 +399,7 @@ namespace TradeShuttlePlanner
             return list.OrderBy(c => c.Tier).ThenBy(c => c.Unit).ToList();
         }
 
-        private static bool IsKept(BasePickupItem item, PlannerConfig cfg)
+        internal static bool IsKept(BasePickupItem item, PlannerConfig cfg)
         {
             if (cfg.Keep == null || cfg.Keep.Count == 0) { return false; }
             var display = Names.Item(item.Id) ?? string.Empty;
@@ -411,7 +411,7 @@ namespace TradeShuttlePlanner
             return false;
         }
 
-        private static List<BasePickupItem> Simulate(
+        internal static List<BasePickupItem> Simulate(
             MagnumProgression progression, TradeShuttleDepartment dept, Factions factions,
             ItemsPrices prices, Difficulty difficulty, List<Station> stations)
         {
@@ -454,7 +454,7 @@ namespace TradeShuttlePlanner
             }
         }
 
-        private static bool Eligible(
+        internal static bool Eligible(
             MagnumProgression progression, Faction faction, Station station, string proxyFactionId)
         {
             if (!string.IsNullOrEmpty(proxyFactionId) && station.OwnerFactionId == proxyFactionId) { return false; }
@@ -463,7 +463,7 @@ namespace TradeShuttlePlanner
             return faction.PlayerReputation >= Data.Global.TradeMinReputationToExchange;
         }
 
-        private static string CategoryForItem(string itemId)
+        internal static string CategoryForItem(string itemId)
         {
             var record = Data.Items.GetSimpleRecord<ItemRecord>(itemId);
             if (record == null) { return string.Empty; }

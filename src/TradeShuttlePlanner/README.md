@@ -48,6 +48,42 @@ seller where it ranks higher, or better reputation so its price drops.
 
 Press **F9** anywhere else on the space map and it falls back to its other mode: ranking every
 destination for the hold you have already built by hand.
+
+## The Planner tab
+
+Alongside the F9 flow, the mod injects a third tab into the trade shuttle screen, next to
+**Cargo** and **Last trip report**. It is an interactive version of the same idea, for when you
+would rather point and click than press a hotkey.
+
+Open the trade shuttle screen and click the new tab (its icon is a clone of the report tab's).
+The page shows:
+
+- **The target good** at the top — whatever you last clicked in the stock market. To change it,
+  open the stock market, click a different good, and come back; the tab updates itself.
+- **Every reachable station stocking it**, one clickable row each, showing the orbit, the owning
+  faction, how many are on the shelf, the reputation-scaled **buy price**, and the item's **rank**
+  in that station's buy order. Each row is **colour-coded by your reputation** with that faction,
+  using the game's own thresholds (green / amber / red). Click a row to pick that destination.
+- **The expected return** for the picked destination and *the hold as it stands right now*: how
+  many of the target come back, the full returning-items list, the total return value and the
+  profit percent. This is the game's own `SimulateTradeShuttlePreviewExchange`, not an estimate,
+  and it re-runs automatically whenever the hold changes, so it stays live as you load and unload.
+
+Two load buttons fill the hold for the picked destination:
+
+- **LOAD IN-DEMAND** — loads only cargo that destination actually consumes, cheapest first,
+  skipping quest items and anything on your `keep` list, and stops as soon as the simulation shows
+  the target coming home.
+- **LOAD BEST** — the high-value variant: loads the most valuable consumable cargo that fits.
+
+Both honour the `keep` list, never touch quest items, and are fully undone by the vanilla
+**UNLOAD ALL** button. Neither replaces the F9 flow; they sit side by side.
+
+The tab is deliberately defensive: if any expected screen widget is missing (for instance after a
+game update moves a field), it logs once and simply does not appear, rather than throwing every
+frame. The stock-market target picker is intentionally minimal — the tab reads the target from the
+stock market rather than duplicating the goods list.
+
 ## Why this is exact, not a heuristic
 
 The shuttle exchange contains **no RNG whatsoever** — its final tie-break is
