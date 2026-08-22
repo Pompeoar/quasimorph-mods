@@ -144,6 +144,12 @@
       "name": "MGSC.IconTabButtonState"
     },
     {
+      "name": "MGSC.HotkeyIcon",
+      "properties": [
+        { "name": "IsSymbolHotkeyShowing", "type": "Boolean", "why": "PLANNER TAB. The cloned UNLOAD ALL button carries a HotkeyIcon child showing its 'G' bind; the planner hides that child so its clones do not display a stray, meaningless key glyph. Bound only as a component type via GetComponentInChildren; this stable public property anchors the declaration so a rename surfaces at build time." }
+      ]
+    },
+    {
       "name": "MGSC.TradeShuttleScreenPage"
     },
     {

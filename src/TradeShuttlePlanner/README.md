@@ -9,16 +9,23 @@ You want a Weapons Case. Vanilla makes you open the stock market, click the item
 three stations that manufacture it, back out, load the shuttle by hand, send it to one of them,
 find out the trade value was poor, come back and reload.
 
-With this mod:
+With this mod, the quickest route is the built-in **Planner tab**:
+
+1. Open the trade shuttle screen and click the **Planner** tab.
+2. Pick the good you want from the in-panel list, then pick a destination.
+
+No stock market, no memorising manufacturers. The panel loads your shuttle with whatever that
+destination actually pays for, sets the barter category, and shows how many of the item to expect
+back. See [The Planner tab](#the-planner-tab) below for the full walk-through.
+
+There is also a hotkey flow for when you would rather not open the screen first:
 
 1. Open the stock market (**H**), go to the goods tab, click the item you want.
 2. Open the trade shuttle screen and press **F9**.
 
-The mod loads your shuttle with whatever that destination actually pays for, sets the barter
-category, and tells you which orbit to send it to and how many of the item to expect back.
-
-It picks the target up from the stock market window itself, so there is no extra UI to learn -
-opening Weapons Case *is* the act of saying "this is what I want".
+Both routes end the same way: the shuttle is loaded, the category is set, and you are told which
+orbit to send it to. The stock-market click is only an optional shortcut that pre-selects the good
+for the F9 flow - the Planner tab needs none of it.
 
 ## What it does when you press F9
 
@@ -51,15 +58,28 @@ destination for the hold you have already built by hand.
 
 ## The Planner tab
 
-Alongside the F9 flow, the mod injects a third tab into the trade shuttle screen, next to
-**Cargo** and **Last trip report**. It is an interactive version of the same idea, for when you
-would rather point and click than press a hotkey.
+The mod injects a third tab into the trade shuttle screen, next to **Cargo** and **Last trip
+report**. It is an interactive, self-contained version of the F9 idea: you pick the good and the
+destination inside this one panel. **The stock market is not required at any point.**
 
-Open the trade shuttle screen and click the new tab (its icon is a clone of the report tab's).
-The page shows:
+Open the trade shuttle screen and click the new tab (its icon is a clone of the report tab's). The
+tab has two modes.
 
-- **The target good** at the top — whatever you last clicked in the stock market. To change it,
-  open the stock market, click a different good, and come back; the tab updates itself.
+### Mode A - pick a good (the default)
+
+When no good is chosen, the panel lists every distinct item currently on the shelf across every
+orbit that will trade with you. For each good it shows the display name, the total stock summed
+across those orbits, how many distinct orbits stock it, and the **lowest reputation-scaled buy
+price** any of them quotes. The list is sorted by name.
+
+Because this can run to hundreds of entries and the screen has no text box to type into, it is
+**paginated**: about twelve goods per page, with **< PREV** and **NEXT >** buttons and a
+"Page N/M" indicator in the body text. Click a good to choose it and switch to Mode B.
+
+### Mode B - pick a destination
+
+Once a good is chosen the panel shows, exactly as before:
+
 - **Every reachable station stocking it**, one clickable row each, showing the orbit, the owning
   faction, how many are on the shelf, the reputation-scaled **buy price**, and the item's **rank**
   in that station's buy order. Each row is **colour-coded by your reputation** with that faction,
@@ -69,20 +89,25 @@ The page shows:
   profit percent. This is the game's own `SimulateTradeShuttlePreviewExchange`, not an estimate,
   and it re-runs automatically whenever the hold changes, so it stays live as you load and unload.
 
+A **CHANGE GOOD** button clears the current good and returns you to Mode A.
+
 Two load buttons fill the hold for the picked destination:
 
-- **LOAD IN-DEMAND** — loads only cargo that destination actually consumes, cheapest first,
+- **LOAD IN-DEMAND** - loads only cargo that destination actually consumes, cheapest first,
   skipping quest items and anything on your `keep` list, and stops as soon as the simulation shows
   the target coming home.
-- **LOAD BEST** — the high-value variant: loads the most valuable consumable cargo that fits.
+- **LOAD BEST** - the high-value variant: loads the most valuable consumable cargo that fits.
 
 Both honour the `keep` list, never touch quest items, and are fully undone by the vanilla
-**UNLOAD ALL** button. Neither replaces the F9 flow; they sit side by side.
+**UNLOAD ALL** button.
+
+Picking a good in the tab also sets the same target the **F9** flow uses, so the two stay in sync:
+clicking an item in the stock market remains an optional shortcut that pre-selects the good, but it
+is no longer required - a brand-new game where the stock market has never been opened works fine.
 
 The tab is deliberately defensive: if any expected screen widget is missing (for instance after a
 game update moves a field), it logs once and simply does not appear, rather than throwing every
-frame. The stock-market target picker is intentionally minimal — the tab reads the target from the
-stock market rather than duplicating the goods list.
+frame.
 
 ## Why this is exact, not a heuristic
 
@@ -121,7 +146,9 @@ Restart the game fully afterwards; assemblies are not hot-reloaded.
 
 ## Use
 
-Pick an item in the stock market, then press **F9** on the trade shuttle screen.
+Open the trade shuttle screen, click the **Planner** tab, pick a good and a destination - all
+in-panel. Or, for the hotkey flow, pick an item in the stock market and press **F9** on the trade
+shuttle screen.
 
 A summary pops up in game; the full report is written to
 
@@ -150,8 +177,8 @@ back.
 | `cargoValueMultiplier` | `6` | With `maxCargoValue = 0`, load at most this many times the wanted item's world price. |
 | `allowUnwantedFiller` | `false` | Allow loading cargo the destination does not consume. It recovers a fifth of its value, so usually a loss. |
 
-The shopping target itself is **not** configured here — it comes from whatever you last clicked
-in the stock market.
+The shopping target itself is **not** configured here - pick it in the Planner tab, or from
+whatever you last clicked in the stock market for the F9 flow.
 
 ## Verifying
 

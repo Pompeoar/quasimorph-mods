@@ -6,6 +6,7 @@ using HarmonyLib;
 using MGSC;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TradeShuttlePlanner
 {
@@ -64,10 +65,15 @@ namespace TradeShuttlePlanner
         }
     }
 
-    /// <summary>Marks a pooled station row and remembers which orbit it selects.</summary>
+    /// <summary>
+    /// Marks a pooled row and remembers what clicking it selects. A row is reused for both the
+    /// goods picker (Mode A, carries an ItemId) and the destination list (Mode B, carries a
+    /// SpaceObjectId), so exactly one of the two is set at a time.
+    /// </summary>
     internal sealed class PlannerRow : MonoBehaviour
     {
         public string SpaceObjectId;
+        public string ItemId;
     }
 
     /// <summary>
@@ -94,12 +100,23 @@ namespace TradeShuttlePlanner
         private Transform _listRoot;
         private CommonButton _loadInDemandButton;
         private CommonButton _loadBestButton;
+        private CommonButton _changeGoodButton;
+        private CommonButton _prevButton;
+        private CommonButton _nextButton;
         private readonly List<CommonButton> _rowPool = new List<CommonButton>();
+        private bool _layoutReady;
 
         private string _selectedSpaceObjectId;
         private string _lastTarget = "\0";
         private int _lastHoldHash;
         private int _updateFailures;
+
+        // Goods picker (Mode A) state. The list is expensive to build - it walks every reachable
+        // station's stock - so it is cached and only rebuilt when the tab opens or the good is
+        // changed, never per frame.
+        private List<GoodEntry> _goodsCache;
+        private int _goodsPage;
+        private const int GoodsPerPage = 12;
 
         // Reputation-independent accent colours, kept as literals so the panel binds no more of
         // Colors than it must. Faction rows use the game's own reputation mapping instead.
@@ -188,20 +205,65 @@ namespace TradeShuttlePlanner
 
         private void BuildContent()
         {
-            // A second caption clone for the live preview text.
+            EnsureLayout();
+
+            // A second caption clone for the live preview / status text. Unlike _headerText (the
+            // screen's single-line caption bar) this lives inside the scrollable list, so it is
+            // the only place multi-line text is ever written.
             var previewGo = UnityEngine.Object.Instantiate(_headerText.gameObject, _listRoot, false);
             previewGo.name = "TradeShuttlePlanner_Preview";
             _previewText = previewGo.GetComponent<TextMeshProUGUI>();
             if (_previewText != null)
             {
                 _previewText.alignment = TextAlignmentOptions.TopLeft;
+                _previewText.enableWordWrapping = true;
                 _previewText.transform.SetAsFirstSibling();
             }
 
+            // Mode B (a good is chosen): load the hold and go back to picking a good.
             _loadInDemandButton = CloneButton("TradeShuttlePlanner_LoadInDemand", "LOAD IN-DEMAND",
                 (b, c) => LoadItems(inDemand: true));
             _loadBestButton = CloneButton("TradeShuttlePlanner_LoadBest", "LOAD BEST",
                 (b, c) => LoadItems(inDemand: false));
+            _changeGoodButton = CloneButton("TradeShuttlePlanner_ChangeGood", "CHANGE GOOD",
+                (b, c) => ChangeGood());
+
+            // Mode A (no good chosen yet): page through the in-panel goods list.
+            _prevButton = CloneButton("TradeShuttlePlanner_PrevPage", "< PREV",
+                (b, c) => TurnGoodsPage(-1));
+            _nextButton = CloneButton("TradeShuttlePlanner_NextPage", "NEXT >",
+                (b, c) => TurnGoodsPage(1));
+        }
+
+        /// <summary>
+        /// The report root we cloned is a bare container; without a layout group its children all
+        /// stack at the same anchored position and overlap. Add one only if the clone did not
+        /// already carry it, so we never fight an existing layout.
+        /// </summary>
+        private void EnsureLayout()
+        {
+            if (_layoutReady || _listRoot == null) { return; }
+            _layoutReady = true;
+            try
+            {
+                var vlg = _listRoot.GetComponent<VerticalLayoutGroup>();
+                if (vlg == null)
+                {
+                    vlg = _listRoot.gameObject.AddComponent<VerticalLayoutGroup>();
+                    vlg.spacing = 4f;
+                    vlg.childForceExpandHeight = false;
+                    vlg.childControlHeight = true;
+                }
+                if (_listRoot.GetComponent<ContentSizeFitter>() == null)
+                {
+                    var fitter = _listRoot.gameObject.AddComponent<ContentSizeFitter>();
+                    fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("[TradeShuttlePlanner] layout setup: " + e.Message);
+            }
         }
 
         private CommonButton CloneButton(string name, string caption, Action<CommonButton, int> onClick)
@@ -209,6 +271,7 @@ namespace TradeShuttlePlanner
             var go = UnityEngine.Object.Instantiate(_buttonTemplate.gameObject, _listRoot, false);
             go.name = name;
             go.transform.SetAsLastSibling();
+            DisableHotkeyGlyph(go);
             var button = go.GetComponent<CommonButton>();
             if (button == null)
             {
@@ -218,6 +281,17 @@ namespace TradeShuttlePlanner
             SetCaption(button, caption);
             button.OnClick += (b, c) => Safe(() => onClick(b, c), "button click");
             return button;
+        }
+
+        /// <summary>
+        /// The UNLOAD ALL button we clone carries a HotkeyIcon on a child object showing its "G"
+        /// bind. The clone has no hotkey of its own, so the leftover glyph is just noise - hide it.
+        /// </summary>
+        private static void DisableHotkeyGlyph(GameObject go)
+        {
+            if (go == null) { return; }
+            var hk = go.GetComponentInChildren<HotkeyIcon>(true);
+            if (hk != null) { hk.gameObject.SetActive(false); }
         }
 
         private void OnPlannerTabClicked(IconTabButton button, int clickCount)
@@ -245,6 +319,7 @@ namespace TradeShuttlePlanner
         {
             _lastTarget = "\0";
             _lastHoldHash = 0;
+            _goodsCache = null;   // rebuild the goods list fresh each time the tab is opened
             Safe(RefreshAll, "refresh on enable");
         }
 
@@ -275,14 +350,12 @@ namespace TradeShuttlePlanner
             if (target != _lastTarget)
             {
                 _lastTarget = target;
-                Safe(() =>
-                {
-                    RefreshHeader();
-                    RefreshStations();
-                    RefreshPreview();
-                }, "target change");
+                Safe(RefreshAll, "target change");
                 return;
             }
+
+            // The hold only affects Mode B's return preview; skip it while picking a good.
+            if (string.IsNullOrEmpty(target)) { return; }
 
             var hash = HoldHash();
             if (hash != _lastHoldHash)
@@ -296,105 +369,291 @@ namespace TradeShuttlePlanner
         {
             _lastTarget = ShoppingList.TargetItemId ?? string.Empty;
             RefreshHeader();
-            RefreshStations();
-            RefreshPreview();
+
+            if (string.IsNullOrEmpty(ShoppingList.TargetItemId))
+            {
+                RefreshGoods();       // Mode A: pick a good
+            }
+            else
+            {
+                RefreshStations();    // Mode B: pick a destination
+                RefreshPreview();
+            }
+
             _lastHoldHash = HoldHash();
         }
 
         private void RefreshHeader()
         {
             if (_headerText == null) { return; }
+            // The caption bar is a single-line widget; everything longer belongs in _previewText.
             var target = ShoppingList.TargetItemId;
-            if (string.IsNullOrEmpty(target))
-            {
-                _headerText.text = "PLANNER\nNo target good yet.\nOpen the stock market and click the good you want.";
-            }
-            else
-            {
-                _headerText.text = "PLANNER\nTarget: " + Tint(TargetColor, Names.Item(target)) +
-                                   "\nPick a different good in the stock market to change it.";
-            }
+            _headerText.text = string.IsNullOrEmpty(target)
+                ? "PLANNER"
+                : "PLANNER - " + Names.Item(target);
         }
 
         private void RefreshStations()
         {
             if (_listRoot == null) { return; }
-            foreach (var row in _rowPool) { if (row != null) { row.gameObject.SetActive(false); } }
+            HideAllRows();
+
+            // Mode B chrome: load buttons and CHANGE GOOD on, paging off.
+            SetActive(_loadInDemandButton, true);
+            SetActive(_loadBestButton, true);
+            SetActive(_changeGoodButton, true);
+            SetActive(_prevButton, false);
+            SetActive(_nextButton, false);
 
             var target = ShoppingList.TargetItemId;
-            if (string.IsNullOrEmpty(target)) { return; }
+            var activeRows = 0;
+            if (!string.IsNullOrEmpty(target) &&
+                Resolve(out var prog, out var fac, out var prices, out _, out var stations, out var travel, out _, out _))
+            {
+                var dept = prog.GetDepartment<TradeShuttleDepartment>();
+                if (dept != null)
+                {
+                    var proxy = dept.Mode == TradeShuttleMode.Barter
+                        ? prog.GetDepartment<ProxyCorpDepartment>()?.ProxyFactionId
+                        : null;
+                    var categoryId = Fetch.CategoryForItem(target);
+                    var allowed = BuyOrder.ClassesForCategory(categoryId);
+
+                    var rows = new List<StationRow>();
+                    foreach (var station in stations.Values)
+                    {
+                        if (string.IsNullOrEmpty(station.SpaceObjectId)) { continue; }
+                        if (station.SpaceObjectId == travel.CurrentSpaceObject) { continue; }
+                        if (station.InternalStorage == null) { continue; }
+                        var faction = fac.Get(station.OwnerFactionId);
+                        if (faction == null || !Fetch.Eligible(prog, faction, station, proxy)) { continue; }
+
+                        var stock = station.InternalStorage.Items.Where(i => i.Id == target).Sum(i => (int)i.StackCount);
+                        if (stock <= 0) { continue; }
+
+                        var buyPrice = TradeSystem.GetItemBuyPrice(prog, faction, station, prices, target);
+                        var ordered = BuyOrder.Candidates(prog, faction, station, prices, allowed);
+                        BuyOrder.Rank(ordered, target, out var rank, out var field, out _);
+
+                        rows.Add(new StationRow
+                        {
+                            SpaceObjectId = station.SpaceObjectId,
+                            Orbit = Names.Orbit(station.SpaceObjectId),
+                            Faction = Names.Faction(station.OwnerFactionId),
+                            Stock = stock,
+                            BuyPrice = buyPrice,
+                            Rank = rank,
+                            Field = field,
+                            Reputation = faction.PlayerReputation
+                        });
+                    }
+
+                    rows = rows.OrderBy(r => r.BuyPrice == 0 ? int.MaxValue : r.BuyPrice)
+                               .ThenBy(r => r.Rank == 0 ? int.MaxValue : r.Rank)
+                               .ToList();
+
+                    foreach (var data in rows)
+                    {
+                        var button = GetRow(activeRows++);
+                        if (button == null) { activeRows--; continue; }
+                        var marker = data.SpaceObjectId == _selectedSpaceObjectId ? "> " : "  ";
+                        var rankText = data.Rank > 0 ? "#" + data.Rank + "/" + data.Field : "#-";
+                        var line = marker + data.Orbit + "  |  " + data.Faction +
+                                   "   x" + data.Stock + "   buy " + data.BuyPrice.ToString("N0") +
+                                   "   " + rankText;
+                        SetCaption(button, Tint(RepHex(data.Reputation), line));
+
+                        var pr = button.GetComponent<PlannerRow>();
+                        if (pr != null) { pr.SpaceObjectId = data.SpaceObjectId; pr.ItemId = null; }
+                        button.gameObject.SetActive(true);
+                    }
+
+                    if (rows.Count == 0)
+                    {
+                        var button = GetRow(activeRows++);
+                        if (button != null)
+                        {
+                            var pr = button.GetComponent<PlannerRow>();
+                            if (pr != null) { pr.SpaceObjectId = null; pr.ItemId = null; }
+                            SetCaption(button, "No reachable station is stocking " + Names.Item(target) + " right now.");
+                            button.gameObject.SetActive(true);
+                        }
+                        else { activeRows--; }
+                    }
+                }
+            }
+
+            ApplyLayout(activeRows, _loadInDemandButton, _loadBestButton, _changeGoodButton);
+        }
+
+        /// <summary>Mode A: the in-panel goods picker. Builds (or reuses) the cached goods list and
+        /// shows one page of it as clickable rows, plainly paginated because there is no text input
+        /// on this screen to type a search into.</summary>
+        private void RefreshGoods()
+        {
+            if (_listRoot == null) { return; }
+            HideAllRows();
+
+            // Mode A chrome: paging on, Mode B buttons off.
+            SetActive(_loadInDemandButton, false);
+            SetActive(_loadBestButton, false);
+            SetActive(_changeGoodButton, false);
+
+            if (_goodsCache == null) { _goodsCache = BuildGoods(); }
+            var goods = _goodsCache;
+
+            var pageCount = Math.Max(1, (goods.Count + GoodsPerPage - 1) / GoodsPerPage);
+            if (_goodsPage < 0) { _goodsPage = 0; }
+            if (_goodsPage >= pageCount) { _goodsPage = pageCount - 1; }
+
+            var showPaging = goods.Count > GoodsPerPage;
+            SetActive(_prevButton, showPaging);
+            SetActive(_nextButton, showPaging);
+            _prevButton?.SetInteractable(_goodsPage > 0);
+            _nextButton?.SetInteractable(_goodsPage < pageCount - 1);
+
+            if (_previewText != null)
+            {
+                _previewText.text = goods.Count == 0
+                    ? "No reachable station is stocking anything you can trade for right now."
+                    : "Pick a good to plan for.   Page " + (_goodsPage + 1) + "/" + pageCount +
+                      "   (" + goods.Count + " goods)";
+            }
+
+            var activeRows = 0;
+            var start = _goodsPage * GoodsPerPage;
+            for (var i = start; i < goods.Count && i < start + GoodsPerPage; i++)
+            {
+                var g = goods[i];
+                var button = GetRow(activeRows++);
+                if (button == null) { activeRows--; continue; }
+                var priceText = g.LowestBuyPrice > 0 ? "buy " + g.LowestBuyPrice.ToString("N0") : "buy -";
+                var line = g.Name + "   x" + g.TotalStock + "   " + g.OrbitCount + " orbit" +
+                           (g.OrbitCount == 1 ? "" : "s") + "   " + priceText;
+                SetCaption(button, line);
+                var pr = button.GetComponent<PlannerRow>();
+                if (pr != null) { pr.ItemId = g.ItemId; pr.SpaceObjectId = null; }
+                button.gameObject.SetActive(true);
+            }
+
+            ApplyLayout(activeRows, _prevButton, _nextButton);
+        }
+
+        /// <summary>
+        /// Sweeps every reachable station's stock into a deduped, name-sorted goods list. This is
+        /// the whole point of Mode A: the good is chosen here, not in the stock market. Expensive,
+        /// so the caller caches the result.
+        /// </summary>
+        private List<GoodEntry> BuildGoods()
+        {
+            var result = new List<GoodEntry>();
             if (!Resolve(out var prog, out var fac, out var prices, out _, out var stations, out var travel, out _, out _))
             {
-                return;
+                return result;
             }
             var dept = prog.GetDepartment<TradeShuttleDepartment>();
-            if (dept == null) { return; }
-
-            var proxy = dept.Mode == TradeShuttleMode.Barter
+            var proxy = dept != null && dept.Mode == TradeShuttleMode.Barter
                 ? prog.GetDepartment<ProxyCorpDepartment>()?.ProxyFactionId
                 : null;
-            var categoryId = Fetch.CategoryForItem(target);
-            var allowed = BuyOrder.ClassesForCategory(categoryId);
 
-            var rows = new List<StationRow>();
+            var byId = new Dictionary<string, GoodEntry>();
             foreach (var station in stations.Values)
             {
                 if (string.IsNullOrEmpty(station.SpaceObjectId)) { continue; }
                 if (station.SpaceObjectId == travel.CurrentSpaceObject) { continue; }
+                if (station.InternalStorage == null) { continue; }
                 var faction = fac.Get(station.OwnerFactionId);
                 if (faction == null || !Fetch.Eligible(prog, faction, station, proxy)) { continue; }
 
-                var stock = station.InternalStorage.Items.Where(i => i.Id == target).Sum(i => (int)i.StackCount);
-                if (stock <= 0) { continue; }
-
-                var buyPrice = TradeSystem.GetItemBuyPrice(prog, faction, station, prices, target);
-                var ordered = BuyOrder.Candidates(prog, faction, station, prices, allowed);
-                BuyOrder.Rank(ordered, target, out var rank, out var field, out _);
-
-                rows.Add(new StationRow
+                var stockHere = new Dictionary<string, int>();
+                foreach (var item in station.InternalStorage.Items)
                 {
-                    SpaceObjectId = station.SpaceObjectId,
-                    Orbit = Names.Orbit(station.SpaceObjectId),
-                    Faction = Names.Faction(station.OwnerFactionId),
-                    Stock = stock,
-                    BuyPrice = buyPrice,
-                    Rank = rank,
-                    Field = field,
-                    Reputation = faction.PlayerReputation
-                });
-            }
-
-            rows = rows.OrderBy(r => r.BuyPrice == 0 ? int.MaxValue : r.BuyPrice)
-                       .ThenBy(r => r.Rank == 0 ? int.MaxValue : r.Rank)
-                       .ToList();
-
-            var index = 0;
-            foreach (var data in rows)
-            {
-                var button = GetRow(index++);
-                if (button == null) { continue; }
-                var marker = data.SpaceObjectId == _selectedSpaceObjectId ? "> " : "  ";
-                var rankText = data.Rank > 0 ? "#" + data.Rank + "/" + data.Field : "#-";
-                var line = marker + data.Orbit + "  |  " + data.Faction +
-                           "   x" + data.Stock + "   buy " + data.BuyPrice.ToString("N0") +
-                           "   " + rankText;
-                SetCaption(button, Tint(RepHex(data.Reputation), line));
-
-                var pr = button.GetComponent<PlannerRow>();
-                if (pr != null) { pr.SpaceObjectId = data.SpaceObjectId; }
-                button.gameObject.SetActive(true);
-            }
-
-            if (rows.Count == 0)
-            {
-                var button = GetRow(index);
-                if (button != null)
-                {
-                    var pr = button.GetComponent<PlannerRow>();
-                    if (pr != null) { pr.SpaceObjectId = null; }
-                    SetCaption(button, "No reachable station is stocking " + Names.Item(target) + " right now.");
-                    button.gameObject.SetActive(true);
+                    if (string.IsNullOrEmpty(item.Id)) { continue; }
+                    stockHere.TryGetValue(item.Id, out var n);
+                    stockHere[item.Id] = n + item.StackCount;
                 }
+
+                foreach (var kv in stockHere)
+                {
+                    if (!byId.TryGetValue(kv.Key, out var entry))
+                    {
+                        entry = new GoodEntry { ItemId = kv.Key, Name = Names.Item(kv.Key) };
+                        byId[kv.Key] = entry;
+                    }
+                    entry.TotalStock += kv.Value;
+                    entry.OrbitSet.Add(station.SpaceObjectId);
+                    var buy = TradeSystem.GetItemBuyPrice(prog, faction, station, prices, kv.Key);
+                    if (buy > 0 && (entry.LowestBuyPrice == 0 || buy < entry.LowestBuyPrice))
+                    {
+                        entry.LowestBuyPrice = buy;
+                    }
+                }
+            }
+
+            foreach (var entry in byId.Values)
+            {
+                entry.OrbitCount = entry.OrbitSet.Count;
+                result.Add(entry);
+            }
+            result.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+            return result;
+        }
+
+        private void TurnGoodsPage(int delta)
+        {
+            _goodsPage += delta;   // clamped inside RefreshGoods
+            RefreshGoods();
+        }
+
+        private void ChangeGood()
+        {
+            ShoppingList.Clear();
+            _selectedSpaceObjectId = null;
+            _goodsCache = null;
+            _goodsPage = 0;
+            _lastTarget = string.Empty;
+            RefreshAll();
+        }
+
+        private void SelectGood(string itemId)
+        {
+            if (string.IsNullOrEmpty(itemId)) { return; }
+            ShoppingList.Set(itemId);          // keeps the F9 flow and the panel on the same target
+            _selectedSpaceObjectId = null;
+            _lastTarget = itemId;
+            RefreshAll();
+        }
+
+        private void HideAllRows()
+        {
+            foreach (var row in _rowPool) { if (row != null) { row.gameObject.SetActive(false); } }
+        }
+
+        private static void SetActive(CommonButton button, bool active)
+        {
+            if (button != null) { button.gameObject.SetActive(active); }
+        }
+
+        /// <summary>
+        /// Pins the child order inside the list every refresh so nothing depends on creation order:
+        /// (1) the body/status text, (2) the action buttons, (3) the visible rows. Only active
+        /// children are ordered; the layout group ignores the inactive ones.
+        /// </summary>
+        private void ApplyLayout(int activeRows, params CommonButton[] buttons)
+        {
+            EnsureLayout();
+            var i = 0;
+            if (_previewText != null) { _previewText.transform.SetSiblingIndex(i++); }
+            if (buttons != null)
+            {
+                foreach (var b in buttons)
+                {
+                    if (b != null && b.gameObject.activeSelf) { b.transform.SetSiblingIndex(i++); }
+                }
+            }
+            for (var r = 0; r < activeRows && r < _rowPool.Count; r++)
+            {
+                if (_rowPool[r] != null) { _rowPool[r].transform.SetSiblingIndex(i++); }
             }
         }
 
@@ -406,6 +665,7 @@ namespace TradeShuttlePlanner
             var go = UnityEngine.Object.Instantiate(_buttonTemplate.gameObject, _listRoot, false);
             go.name = "TradeShuttlePlanner_Row";
             go.transform.SetAsLastSibling();
+            DisableHotkeyGlyph(go);
             var button = go.GetComponent<CommonButton>();
             if (button == null) { UnityEngine.Object.Destroy(go); return null; }
 
@@ -418,8 +678,14 @@ namespace TradeShuttlePlanner
 
         private void OnRowClicked(PlannerRow row)
         {
-            if (row == null || string.IsNullOrEmpty(row.SpaceObjectId)) { return; }
-            _selectedSpaceObjectId = row.SpaceObjectId;
+            if (row == null) { return; }
+            if (!string.IsNullOrEmpty(row.ItemId))
+            {
+                SelectGood(row.ItemId);          // Mode A: chose a good
+                return;
+            }
+            if (string.IsNullOrEmpty(row.SpaceObjectId)) { return; }
+            _selectedSpaceObjectId = row.SpaceObjectId;   // Mode B: chose a destination
             RefreshStations();
             RefreshPreview();
             _loadBestButton?.SetInteractable(true);
@@ -669,6 +935,16 @@ namespace TradeShuttlePlanner
         {
             public BasePickupItem Item;
             public float Unit;
+        }
+
+        private sealed class GoodEntry
+        {
+            public string ItemId;
+            public string Name;
+            public int TotalStock;
+            public int OrbitCount;
+            public int LowestBuyPrice;
+            public readonly HashSet<string> OrbitSet = new HashSet<string>();
         }
     }
 }
