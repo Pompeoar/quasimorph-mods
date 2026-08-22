@@ -17,6 +17,12 @@ namespace TradeShuttlePlanner
         public int CargoValue;
         public int Profit;
         public int ItemsLoaded;
+        public int Rank;                 // target's position in the station's buy order, 1-based
+        public int Field;                // how many distinct items share that category there
+        public int CellsAhead;           // cells the shuttle spends on better items before it
+        public int TargetBuyPrice;       // reputation-scaled price the best seller here quotes
+        public int Reputation;           // our standing with that seller
+        public List<BasePickupItem> Load = new List<BasePickupItem>();
         public List<string> Sellers = new List<string>();
     }
 
@@ -139,8 +145,14 @@ namespace TradeShuttlePlanner
                     UnloadAll(dept, cargo, spaceTime);
                 }
 
+                // Anything that actually delivers wins. Past that, prefer the seller that quotes
+                // the lowest reputation-scaled price and has the least better-ratio stock queued
+                // ahead of the item, because those are the two things that decide whether a
+                // bigger cargo would ever have helped. Profit is only a final tie-break.
                 result.Considered = result.Considered
                     .OrderByDescending(o => o.TargetCount)
+                    .ThenBy(o => o.TargetBuyPrice == 0 ? int.MaxValue : o.TargetBuyPrice)
+                    .ThenBy(o => o.CellsAhead < 0 ? int.MaxValue : o.CellsAhead)
                     .ThenByDescending(o => o.Profit)
                     .ToList();
 
@@ -149,8 +161,13 @@ namespace TradeShuttlePlanner
                 if (result.Chosen != null)
                 {
                     // Rebuild the winning loadout and leave it in the hold.
-                    LoadFor(progression, dept, factions, prices, cargo, spaceTime,
-                        withStock[result.Chosen.SpaceObjectId], proxyFactionId);
+                    foreach (var item in result.Chosen.Load)
+                    {
+                        if (item.Storage == null)
+                        {
+                            dept.TradeShuttleStorage.TryPutItem(item, CellPosition.Zero);
+                        }
+                    }
                     dept.SelectedBarterCategoryId = result.Chosen.CategoryId;
                 }
                 else
@@ -183,32 +200,105 @@ namespace TradeShuttlePlanner
                 return null;
             }
 
-            var loaded = LoadFor(progression, dept, factions, prices, cargo, spaceTime, stations, proxyFactionId);
-            if (loaded == 0) { return null; }
-
             dept.SelectedBarterCategoryId = categoryId;
 
+            var eligible = stations
+                .Select(s => new StationView { Station = s, Faction = factions.Get(s.OwnerFactionId) })
+                .Where(x => x.Faction != null && Eligible(progression, x.Faction, x.Station, proxyFactionId))
+                .ToList();
+
+            var sellers = eligible
+                .Where(x => x.Station.InternalStorage.Items.Any(i => i.Id == targetItemId))
+                .ToList();
+            if (sellers.Count == 0) { return null; }
+
+            // Where the wanted item sits in the shuttle's buy order here, and what it costs us.
+            // The shuttle always takes the best world/buy ratio it can still afford and still fit,
+            // so an item with a lot of better-ratio stock ahead of it never comes home however
+            // much cargo you send. Buy price is reputation-scaled, which is why a disliked faction
+            // can quote double what a friendly one does for the identical item.
+            var allowed = BuyOrder.ClassesForCategory(categoryId);
+            var rank = 0;
+            var field = 0;
+            var cellsAhead = int.MaxValue;
+            var buyPrice = 0;
+            var reputation = 0;
+
+            foreach (var view in sellers)
+            {
+                var ordered = BuyOrder.Candidates(progression, view.Faction, view.Station, prices, allowed);
+                BuyOrder.Rank(ordered, targetItemId, out var r, out var f, out var ca);
+                if (r <= 0) { continue; }
+
+                var price = TradeSystem.GetItemBuyPrice(
+                    progression, view.Faction, view.Station, prices, targetItemId);
+
+                if (buyPrice == 0 || price < buyPrice)
+                {
+                    buyPrice = price;
+                    reputation = Mathf.RoundToInt(view.Faction.PlayerReputation);
+                }
+                if (ca < cellsAhead) { cellsAhead = ca; rank = r; field = f; }
+            }
+            if (cellsAhead == int.MaxValue) { cellsAhead = -1; }
+
+            var cap = CargoCap(prices, targetItemId);
+            var queue = OrderedCargo(progression, prices, cargo, eligible);
+
+            FetchOption best = null;
+            var loaded = 0;
+            var loadedValue = 0f;
+            var lastSim = 0f;
+            var step = Mathf.Max(1f, cap / 12f);
+
+            foreach (var entry in queue)
+            {
+                if (loadedValue >= cap) { break; }
+                if (entry.Item.Storage == null) { continue; }
+                if (!dept.TradeShuttleStorage.TryPutItem(entry.Item, CellPosition.Zero)) { continue; }
+
+                loaded++;
+                loadedValue += entry.World;
+
+                if (loadedValue - lastSim < step && loadedValue < cap) { continue; }
+                lastSim = loadedValue;
+
+                var option = Evaluate(progression, dept, factions, prices, difficulty, stations,
+                    spaceObjectId, categoryId, targetItemId, loaded);
+                if (option == null) { continue; }
+
+                option.Rank = rank;
+                option.Field = field;
+                option.CellsAhead = cellsAhead;
+                option.TargetBuyPrice = buyPrice;
+                option.Reputation = reputation;
+                option.Sellers = sellers
+                    .Select(v => Names.Faction(v.Station.OwnerFactionId)).Distinct().ToList();
+                option.Load = new List<BasePickupItem>(dept.TradeShuttleStorage.Items);
+                best = option;
+
+                if (option.TargetCount >= 1) { break; }
+            }
+
+            return best;
+        }
+
+        private static FetchOption Evaluate(
+            MagnumProgression progression, TradeShuttleDepartment dept, Factions factions,
+            ItemsPrices prices, Difficulty difficulty, List<Station> stations,
+            string spaceObjectId, string categoryId, string targetItemId, int loaded)
+        {
             var cargoValue = TradeSystem.GetTradeShuttleCargoWorldPrice(prices, dept.TradeShuttleStorage.Items);
+            var originals = new HashSet<BasePickupItem>(dept.TradeShuttleStorage.Items);
+
             var returning = Simulate(progression, dept, factions, prices, difficulty, stations);
             if (returning == null) { return null; }
 
-            var originals = new HashSet<BasePickupItem>(dept.TradeShuttleStorage.Items);
             var targetCount = returning
                 .Where(i => i.Id == targetItemId && !originals.Contains(i))
                 .Sum(i => (int)i.StackCount);
 
             var returnValue = TradeSystem.GetTradeShuttleCargoWorldPrice(prices, returning);
-
-            var sellers = stations
-                .Where(s =>
-                {
-                    var f = factions.Get(s.OwnerFactionId);
-                    return f != null && Eligible(progression, f, s, proxyFactionId)
-                        && s.InternalStorage.Items.Any(i => i.Id == targetItemId);
-                })
-                .Select(s => Names.Faction(s.OwnerFactionId))
-                .Distinct()
-                .ToList();
 
             return new FetchOption
             {
@@ -219,9 +309,88 @@ namespace TradeShuttlePlanner
                 ReturnValue = returnValue,
                 CargoValue = cargoValue,
                 Profit = cargoValue > 0 ? Mathf.RoundToInt(returnValue * 100f / cargoValue) : 0,
-                ItemsLoaded = loaded,
-                Sellers = sellers
+                ItemsLoaded = loaded
             };
+        }
+
+        /// <summary>
+        /// How much cargo world value we are willing to spend. Sending 100k of gear to fetch a 5k
+        /// item is exactly the hold-emptying behaviour that made the first build unusable, so the
+        /// default ceiling is a multiple of what the wanted item is worth.
+        /// </summary>
+        private static float CargoCap(ItemsPrices prices, string targetItemId)
+        {
+            var cfg = PlannerConfig.Current;
+            if (cfg.MaxCargoValue > 0) { return cfg.MaxCargoValue; }
+            var world = prices.GetPrice(targetItemId);
+            return Mathf.Max(2000f, world * cfg.CargoValueMultiplier);
+        }
+
+        private sealed class StationView
+        {
+            public Station Station;
+            public Faction Faction;
+        }
+
+        private sealed class CargoCandidate
+        {
+            public BasePickupItem Item;
+            public float World;
+            public float Unit;
+            public int Tier;
+        }
+
+        /// <summary>
+        /// Decides what the shuttle is allowed to spend, cheapest first.
+        ///
+        /// The first build ranked by value per cell and loaded everything that fit, which sent the
+        /// player's good gear away. Barter junk goes first now: cheap stock the destination
+        /// actually consumes, then cheap stock it does not, and only then anything valuable. The
+        /// keep list is absolute.
+        /// </summary>
+        private static List<CargoCandidate> OrderedCargo(
+            MagnumProgression progression, ItemsPrices prices, MagnumCargo cargo,
+            List<StationView> eligible)
+        {
+            var cfg = PlannerConfig.Current;
+            var ceiling = cfg.JunkCeiling;
+            var list = new List<CargoCandidate>();
+
+            foreach (var storage in cargo.ShipCargo)
+            {
+                foreach (var item in storage.Items.ToList())
+                {
+                    if (ItemInteractionSystem.IsQuestItem(item)) { continue; }
+                    if (IsKept(item, cfg)) { continue; }
+
+                    var unit = prices.GetPrice(item.Id);
+                    var world = unit * item.StackCount;
+                    var consumed = eligible.Any(x => TradeSystem.IsValidItem(x.Faction, x.Station, item.Id));
+
+                    // Anything the destination does not consume is dumped at
+                    // TradeShuttleUnsupportedSellValuePercent - a fifth of its worth - while still
+                    // eating a return cell. Sending it is how a six-figure hold came back at 39%.
+                    if (!consumed && !cfg.AllowUnwantedFiller) { continue; }
+
+                    var tier = consumed ? (unit <= ceiling ? 0 : 1) : 2;
+
+                    list.Add(new CargoCandidate { Item = item, World = world, Unit = unit, Tier = tier });
+                }
+            }
+
+            return list.OrderBy(c => c.Tier).ThenBy(c => c.Unit).ToList();
+        }
+
+        private static bool IsKept(BasePickupItem item, PlannerConfig cfg)
+        {
+            if (cfg.Keep == null || cfg.Keep.Count == 0) { return false; }
+            var display = Names.Item(item.Id) ?? string.Empty;
+            foreach (var fragment in cfg.Keep)
+            {
+                if (item.Id.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0) { return true; }
+                if (display.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0) { return true; }
+            }
+            return false;
         }
 
         private static List<BasePickupItem> Simulate(
@@ -243,47 +412,6 @@ namespace TradeShuttlePlanner
             }
         }
 
-        /// <summary>
-        /// Fills the hold from ship cargo with what this destination pays best for. Items the
-        /// destination actually consumes are worth their full world price; everything else only
-        /// liquidates at the junk rate, so it is ranked far lower and only used as filler.
-        /// </summary>
-        private static int LoadFor(
-            MagnumProgression progression, TradeShuttleDepartment dept, Factions factions,
-            ItemsPrices prices, MagnumCargo cargo, SpaceTime spaceTime,
-            List<Station> stations, string proxyFactionId)
-        {
-            var junkRate = progression.TradeShuttleUnsupportedSellValuePercent;
-
-            var eligible = stations
-                .Select(s => new { s, f = factions.Get(s.OwnerFactionId) })
-                .Where(x => x.f != null && Eligible(progression, x.f, x.s, proxyFactionId))
-                .ToList();
-
-            var scored = new List<(BasePickupItem item, float score)>();
-            foreach (var storage in cargo.ShipCargo)
-            {
-                foreach (var item in storage.Items.ToList())
-                {
-                    if (ItemInteractionSystem.IsQuestItem(item)) { continue; }
-
-                    var world = prices.GetPrice(item.Id) * item.StackCount;
-                    var wanted = eligible.Any(x => TradeSystem.IsValidItem(x.f, x.s, item.Id));
-                    var value = wanted ? world : world * junkRate;
-                    var cells = Mathf.Max(1, item.InventoryWidthSize);
-                    scored.Add((item, value / cells));
-                }
-            }
-
-            var loaded = 0;
-            foreach (var entry in scored.OrderByDescending(e => e.score))
-            {
-                if (entry.item.Storage == null) { continue; }
-                if (ItemInteractionSystem.IsQuestItem(entry.item)) { continue; }
-                if (dept.TradeShuttleStorage.TryPutItem(entry.item, CellPosition.Zero)) { loaded++; }
-            }
-            return loaded;
-        }
 
         private static void UnloadAll(TradeShuttleDepartment dept, MagnumCargo cargo, SpaceTime spaceTime)
         {

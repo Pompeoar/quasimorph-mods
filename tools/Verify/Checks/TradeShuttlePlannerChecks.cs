@@ -83,6 +83,8 @@ public sealed class TradeShuttlePlannerChecks : IModChecks
         var totalPairs = 0;
         var sawZeroBuy = false;
         var sawRatioTie = false;
+        var reachabilityViolations = 0;
+        var sawUnreachable = false;
 
         for (var trial = 0; trial < 400; trial++)
         {
@@ -163,6 +165,40 @@ public sealed class TradeShuttlePlannerChecks : IModChecks
             {
                 selectionMismatches++;
             }
+
+            // The report tells the player "it is #N in the buy order, more cargo will not help".
+            // That claim rests on the hold, not the wallet: the game buys strictly best-first, so
+            // once the items ahead of the target have filled every return cell, an unlimited
+            // budget still brings back nothing. Replay the real loop with infinite points and a
+            // cell budget equal to the cells ahead of the target, and confirm it never arrives.
+            for (var t = 0; t < sorted.Count; t++)
+            {
+                var target = sorted[t];
+                var cellsAhead = sorted.Take(t).Sum(c => c.Cells);
+                if (cellsAhead == 0) { continue; }
+
+                var pool = new List<Candidate>(set);
+                var cells = cellsAhead;
+                var bought = false;
+                while (pool.Count > 0)
+                {
+                    var affordable = pool.Where(c => c.Cells <= cells).ToList();
+                    if (affordable.Count == 0) { break; }
+
+                    var best = affordable[0];
+                    for (var i = 1; i < affordable.Count; i++)
+                    {
+                        if (IsBetter(affordable[i], best)) { best = affordable[i]; }
+                    }
+                    if (best.Id == target.Id) { bought = true; break; }
+
+                    cells -= best.Cells;
+                    pool.RemoveAll(c => c.Id == best.Id);
+                }
+
+                if (bought) { reachabilityViolations++; }
+                else { sawUnreachable = true; }
+            }
         }
 
         reporter.Assert(
@@ -176,6 +212,13 @@ public sealed class TradeShuttlePlannerChecks : IModChecks
         reporter.Assert(
             selectionMismatches == 0,
             $"[TradeShuttlePlanner] sorting disagreed with repeated-argmax selection in {selectionMismatches} trial(s)");
+
+        reporter.Assert(
+            reachabilityViolations == 0,
+            $"[TradeShuttlePlanner] an item was bought despite the items ranked above it already filling every return cell, in {reachabilityViolations} case(s); the report's \"more cargo will not help\" explanation would be wrong");
+
+        reporter.Assert(sawUnreachable,
+            "[TradeShuttlePlanner] no unreachable-target case was generated; the cells-ahead explanation went untested");
 
         // Guard against the test data being so tame it never exercises the tie-breaks. A pass
         // on inputs that never tie would prove almost nothing.

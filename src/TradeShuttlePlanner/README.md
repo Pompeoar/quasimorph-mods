@@ -25,11 +25,26 @@ opening Weapons Case *is* the act of saying "this is what I want".
 - Finds every orbit that will trade with you **and is currently stocking** the item. The stock
   market's manufacturer list tells you who makes it; that is not the same as who has one on the
   shelf right now, which is what the shuttle can actually buy.
-- For each of those, fills the hold from ship cargo with the highest-value goods *that
-  destination consumes*. Cargo it will not consume only liquidates at the junk rate, so it is
-  ranked far below and used only as filler.
-- Simulates the run and keeps the loadout that brings back the most of what you asked for.
+- Loads **only cargo that destination actually consumes**, cheapest first. Anything a station
+  does not consume is dumped at `TradeShuttleUnsupportedSellValuePercent` — a fifth of its worth
+  — while still eating a return cell, so sending it is how a six-figure hold comes back at 39%
+  profit. Junk goes before good stock, and the `keep` list is absolute.
+- Stops as soon as the simulated run actually brings the item back, and never spends more than
+  `cargoValueMultiplier` times the item's world price. It will not empty your hold to fetch one
+  cheap thing.
+- Ranks destinations by whether they deliver, then by the **reputation-scaled price** they quote.
+  Two stations stocking the same item can differ by a factor of two purely on standing, so the
+  disliked faction is not the answer just because your cargo happens to profit more there.
 - Leaves the winning loadout in the hold with the category already selected.
+
+### When it says 0x
+
+The shuttle does not shop for you; it repeatedly buys the best world/buy ratio item it can still
+afford and still fit. A specific item only comes home if it sits near the top of that ordering
+within its barter category at that station. If the report says *"it is #7 of 22 in the buy
+order"*, the six better-value items will fill the hold first and **no amount of extra cargo
+changes that** — the binding constraint is return cells, not trade points. Your options are a
+seller where it ranks higher, or better reputation so its price drops.
 
 Press **F9** anywhere else on the space map and it falls back to its other mode: ranking every
 destination for the hold you have already built by hand.
@@ -93,6 +108,11 @@ back.
 | `maxGainsShown` | `4` | Returning items named per destination. |
 | `showDialog` | `true` | Set false for a notification only. |
 | `wanted` | *(empty)* | Comma-separated item ids or name fragments, for the survey mode's where-to-buy section. |
+| `keep` | *(empty)* | Comma-separated ids or name fragments the shuttle must **never** carry. Use it for gear you are saving. |
+| `junkCeiling` | `400` | Unit world price at or below which an item counts as barter junk. Junk is spent first. |
+| `maxCargoValue` | `0` | Hard ceiling on loaded cargo world value. `0` derives it from the target's price. |
+| `cargoValueMultiplier` | `6` | With `maxCargoValue = 0`, load at most this many times the wanted item's world price. |
+| `allowUnwantedFiller` | `false` | Allow loading cargo the destination does not consume. It recovers a fifth of its value, so usually a loss. |
 
 The shopping target itself is **not** configured here — it comes from whatever you last clicked
 in the stock market.

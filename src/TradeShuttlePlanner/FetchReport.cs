@@ -32,12 +32,30 @@ namespace TradeShuttlePlanner
             sb.AppendLine("  Expect back: " + c.TargetCount + "x " + Names.Item(r.TargetItemId));
             sb.AppendLine("  Return value " + N(c.ReturnValue) + "  (profit " + c.Profit + "%)");
 
+            if (c.TargetBuyPrice > 0)
+            {
+                sb.AppendLine("  It quotes " + N(c.TargetBuyPrice) + " there (rep " + c.Reputation + ")");
+            }
+
             if (c.TargetCount == 0)
             {
                 sb.AppendLine();
-                sb.AppendLine("WARNING: this loadout does not actually bring one back.");
-                sb.AppendLine("You likely need more trade value in the hold, or better");
-                sb.AppendLine("reputation with the faction selling it.");
+                if (c.Rank > 1)
+                {
+                    // The shuttle buys strictly best-ratio first, so position in that queue is
+                    // the real gate - not how much cargo you send.
+                    sb.AppendLine("WHY 0x: it is #" + c.Rank + " of " + c.Field + " in the buy order");
+                    sb.AppendLine("there. The shuttle spends everything on the " + (c.Rank - 1) + " better");
+                    sb.AppendLine("value items first and fills the hold. More cargo will not");
+                    sb.AppendLine("help; you need a seller where it ranks higher, or better rep");
+                    sb.AppendLine("so its price drops.");
+                }
+                else
+                {
+                    sb.AppendLine("WARNING: this loadout does not bring one back. Raise the");
+                    sb.AppendLine("cargo cap (cargoValueMultiplier in planner.cfg) or improve");
+                    sb.AppendLine("reputation with the faction selling it.");
+                }
             }
 
             if (r.Considered.Count > 1)
@@ -46,7 +64,9 @@ namespace TradeShuttlePlanner
                 sb.AppendLine("Other options:");
                 foreach (var o in r.Considered.Skip(1).Take(4))
                 {
-                    sb.AppendLine("  " + o.OrbitName + " - " + o.TargetCount + "x, profit " + o.Profit + "%");
+                    var price = o.TargetBuyPrice > 0 ? ", costs " + N(o.TargetBuyPrice) : string.Empty;
+                    sb.AppendLine("  " + o.OrbitName + " - " + o.TargetCount + "x, profit "
+                                  + o.Profit + "%" + price);
                 }
             }
 
