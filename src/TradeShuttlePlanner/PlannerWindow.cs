@@ -39,8 +39,11 @@ namespace TradeShuttlePlanner
         // Step 1 state
         private string _categoryFilter = "\0ALL";   // sentinel meaning "no category filter"
         private int _goodsPage;
-        private const int GoodsPerPage = 40;
-        private const int GoodsColumns = 8;
+        private const int GoodsPerPage = 50;
+        private const int GoodsColumns = 10;
+        private const float GoodsCellSize = 62f;
+        private const int LoadColumns = 12;
+        private const float LoadCellSize = 50f;
         private List<GoodEntry> _goodsCache;
         private string _highlightItemId;
 
@@ -75,6 +78,17 @@ namespace TradeShuttlePlanner
         private readonly List<Cell> _holdCells = new List<Cell>();
         private readonly List<Cell> _availCells = new List<Cell>();
         private readonly List<BasePickupItem> _availItems = new List<BasePickupItem>();
+
+        // The whole window is laid out against this fixed design size and then uniformly scaled to
+        // fit whatever UI.ScreenRoot actually measures. ScreenRoot's local units are NOT screen
+        // pixels and are not a 1920x1080 reference either - it measures roughly 950 units across -
+        // so any absolute size picked by eye renders far too large. Measuring instead of guessing
+        // also keeps the window correct at any resolution or UI scale setting.
+        private const float DesignWidth = 960f;
+        private const float DesignHeight = 640f;
+        private const float ScreenFill = 0.92f;
+        private RectTransform _scaler;
+        private Vector2 _lastFitSize = Vector2.zero;
 
         private const string Teal = "#5AD9D9";
         private const string Good = "#7CFF7C";
@@ -116,6 +130,7 @@ namespace TradeShuttlePlanner
             {
                 gameObject.SetActive(true);
                 transform.SetAsLastSibling();
+                FitToParent();
                 _step = Step.Goods;
                 _selectedItemId = null;
                 _selectedSpaceObjectId = null;
@@ -137,6 +152,27 @@ namespace TradeShuttlePlanner
             Safe(() => gameObject.SetActive(false), "close");
         }
 
+        /// <summary>
+        /// Uniformly scales the design-sized panel so it fills <see cref="ScreenFill"/> of the
+        /// available rect without distorting or overflowing it. Recomputed only when the parent
+        /// rect actually changes, so this costs nothing on a steady frame.
+        /// </summary>
+        private void FitToParent()
+        {
+            if (_scaler == null) { return; }
+            var rt = transform as RectTransform;
+            if (rt == null) { return; }
+
+            var size = rt.rect.size;
+            if (size.x <= 1f || size.y <= 1f) { return; }
+            if ((size - _lastFitSize).sqrMagnitude < 0.01f) { return; }
+            _lastFitSize = size;
+
+            var scale = Mathf.Min(size.x / DesignWidth, size.y / DesignHeight) * ScreenFill;
+            if (scale <= 0f || float.IsNaN(scale)) { return; }
+            _scaler.localScale = new Vector3(scale, scale, 1f);
+        }
+
         // ---- chrome ---------------------------------------------------------------------------
 
         private void BuildChrome(Transform root)
@@ -145,14 +181,24 @@ namespace TradeShuttlePlanner
             Stretch(backdrop.rectTransform);
             backdrop.raycastTarget = true;
 
+            // Everything below is authored at DesignWidth x DesignHeight and scaled as a unit by
+            // FitToParent, so the layout numbers stay readable and resolution-independent.
+            _scaler = new GameObject("Scaler", typeof(RectTransform)).GetComponent<RectTransform>();
+            _scaler.SetParent(root, false);
+            _scaler.anchorMin = new Vector2(0.5f, 0.5f);
+            _scaler.anchorMax = new Vector2(0.5f, 0.5f);
+            _scaler.pivot = new Vector2(0.5f, 0.5f);
+            _scaler.sizeDelta = new Vector2(DesignWidth, DesignHeight);
+            _scaler.anchoredPosition = Vector2.zero;
+
             // Teal border, dark fill: two nested images approximate the game's panel chrome without
             // needing to guess at a serialized sprite.
-            var border = NewImage(root, "PanelBorder", new Color(0.22f, 0.62f, 0.62f, 1f));
+            var border = NewImage(_scaler, "PanelBorder", new Color(0.22f, 0.62f, 0.62f, 1f));
             var brt = border.rectTransform;
-            brt.anchorMin = new Vector2(0.5f, 0.5f);
-            brt.anchorMax = new Vector2(0.5f, 0.5f);
-            brt.sizeDelta = new Vector2(900f, 600f);
-            brt.anchoredPosition = Vector2.zero;
+            brt.anchorMin = Vector2.zero;
+            brt.anchorMax = Vector2.one;
+            brt.offsetMin = Vector2.zero;
+            brt.offsetMax = Vector2.zero;
 
             var fill = NewImage(border.transform, "PanelFill", new Color(0.06f, 0.09f, 0.10f, 0.99f));
             var frt = fill.rectTransform;
@@ -256,7 +302,7 @@ namespace TradeShuttlePlanner
 
             var availLabel = NewLabel(_loadRoot.transform, "AvailLabel", "Ship cargo this station wants  (click to load)", 14f, HexColor(Teal), TextAlignmentOptions.Left);
             Anchor(availLabel.rectTransform, 0f, 1f, 1f, 1f, new Vector2(0f, -180f), new Vector2(0f, -162f));
-            _availGrid = NewGridAt(_loadRoot.transform, "AvailGrid", 1f, -290f, 1f, -184f).transform;
+            _availGrid = NewGridAt(_loadRoot.transform, "AvailGrid", 1f, -440f, 1f, -184f).transform;
 
             _preview = NewLabel(_loadRoot.transform, "Preview", "", 14f, Colors.White, TextAlignmentOptions.TopLeft);
             _preview.enableWordWrapping = true;
@@ -274,6 +320,7 @@ namespace TradeShuttlePlanner
             try
             {
                 if (Input.GetKeyDown(KeyCode.Escape)) { Close(); return; }
+                FitToParent();
                 if (_step == Step.Load)
                 {
                     var hash = HoldHash();
@@ -407,7 +454,7 @@ namespace TradeShuttlePlanner
         private Cell GetGoodsCell(int index)
         {
             if (index < _goodsCells.Count) { return _goodsCells[index]; }
-            var cell = Widgets.CreateCell(_goodsGrid, "Good" + index, 46f);
+            var cell = Widgets.CreateCell(_goodsGrid, "Good" + index, GoodsCellSize);
             if (cell != null) { _goodsCells.Add(cell); }
             return cell;
         }
@@ -645,7 +692,7 @@ namespace TradeShuttlePlanner
         private Cell GetCell(List<Cell> pool, Transform parent, string prefix, int index)
         {
             if (index < pool.Count) { return pool[index]; }
-            var cell = Widgets.CreateCell(parent, prefix + index, 40f);
+            var cell = Widgets.CreateCell(parent, prefix + index, LoadCellSize);
             if (cell != null) { pool.Add(cell); }
             return cell;
         }
@@ -922,12 +969,30 @@ namespace TradeShuttlePlanner
             return rt;
         }
 
+        /// <summary>
+        /// The goods grid stretches to the full body height rather than being pinned to the top by
+        /// a fixed offset. A GridLayoutGroup does not clip, so an undersized rect still *looks*
+        /// right while silently overflowing - which stops being true the moment the row count or
+        /// cell size changes. Giving it the real height it needs keeps the layout honest.
+        /// </summary>
         private GameObject NewGrid(Transform parent, string name)
         {
-            return NewGridAt(parent, name, 1f, -170f, 1f, -32f);
+            var go = new GameObject(name, typeof(RectTransform));
+            var rt = go.GetComponent<RectTransform>();
+            rt.SetParent(parent, false);
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(0f, 86f);
+            rt.offsetMax = new Vector2(0f, -32f);
+            var grid = go.AddComponent<GridLayoutGroup>();
+            grid.cellSize = new Vector2(GoodsCellSize, GoodsCellSize);
+            grid.spacing = new Vector2(6f, 6f);
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = GoodsColumns;
+            return go;
         }
 
-        private GameObject NewGridAt(Transform parent, string name, float axMax, float offMinY, float ayMax, float offMaxY)
+        private GameObject NewGridAt(Transform parent, string name, float axMax, float offMinY, float ayMax, float offMaxY, int columns = LoadColumns, float cellSize = LoadCellSize)
         {
             var go = new GameObject(name, typeof(RectTransform));
             var rt = go.GetComponent<RectTransform>();
@@ -937,10 +1002,10 @@ namespace TradeShuttlePlanner
             rt.offsetMin = new Vector2(0f, offMinY);
             rt.offsetMax = new Vector2(0f, offMaxY);
             var grid = go.AddComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(46f, 46f);
+            grid.cellSize = new Vector2(cellSize, cellSize);
             grid.spacing = new Vector2(6f, 6f);
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            grid.constraintCount = GoodsColumns;
+            grid.constraintCount = columns;
             return go;
         }
 
