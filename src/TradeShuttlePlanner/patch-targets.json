@@ -101,9 +101,12 @@
     {
       "name": "MGSC.BasePickupItem",
       "properties": [
-        { "name": "InventoryWidthSize", "type": "Int32", "why": "cell usage in the hold summary" },
+        { "name": "InventoryWidthSize", "type": "Int32", "why": "cell usage in the hold summary; also the icon width size passed to ItemFactory.ResolveIcon" },
         { "name": "Id", "type": "String" },
         { "name": "StackCount", "type": "Int16", "why": "quantities in the returning-items and dead-weight lists" }
+      ],
+      "methods": [
+        { "name": "View", "params": [], "why": "PLANNER WINDOW. Returns the item's ItemContentDescriptor, whose Icon feeds ItemFactory.ResolveIcon for the cell sprite." }
       ]
     },
     {
@@ -122,52 +125,107 @@
       "name": "MGSC.TradeShuttleScreen",
       "baseType": "MGSC.ScreenWithShipCargo",
       "fields": [
-        { "name": "_cargoPageButton", "type": "IconTabButton", "why": "PLANNER TAB. Reset to Inactive when the planner tab is shown, so tab exclusivity is manual, mirroring the vanilla ShowPage" },
-        { "name": "_lastTripReportPageButton", "type": "IconTabButton", "why": "PLANNER TAB. Cloned to make the third tab button, and reset to Inactive when the planner tab is shown" },
-        { "name": "_cargoPageRoot", "type": "GameObject", "why": "PLANNER TAB. Deactivated when the planner page is shown" },
-        { "name": "_lastTripReportPageRoot", "type": "GameObject", "why": "PLANNER TAB. Cloned to make the planner page root, and deactivated when the planner page is shown" },
-        { "name": "_unloadAllButton", "type": "CommonButton", "why": "PLANNER TAB. Cloned as the template for the two load buttons and every clickable station row" }
+        { "name": "_lastTripReportPageButton", "type": "IconTabButton", "why": "PLANNER TAB. Cloned to make the third tab button that opens the planner window" },
+        { "name": "_unloadAllButton", "type": "CommonButton", "why": "PLANNER WINDOW. Cloned as the template for the window's buttons and clickable station rows; being a HotkeyButton is why it is swapped for a plain CommonButton" }
       ],
       "methods": [
         { "name": "RefreshView", "params": [], "why": "the hold is changed underneath the open screen, so it has to be told to redraw" },
-        { "name": "Awake", "params": [], "why": "PLANNER TAB. HARMONY POSTFIX. Where the third tab and its page root are built, once, from the screen's own serialized widgets" },
-        { "name": "ShowPage", "params": ["TradeShuttleScreenPage"], "why": "PLANNER TAB. HARMONY POSTFIX. Selecting either stock tab must hide the planner page and reset its tab button, since there is no tab-group component doing it" }
+        { "name": "Awake", "params": [], "why": "PLANNER TAB. HARMONY POSTFIX. Where the third tab button is built, once, from the screen's own serialized widgets and wired to open the planner window" }
       ]
     },
     {
       "name": "MGSC.IconTabButton",
       "methods": [
-        { "name": "SetState", "params": ["IconTabButtonState"], "why": "PLANNER TAB. Drives the planner tab's Active/Inactive visual, exactly as ShowPage does for the two stock tabs" }
+        { "name": "SetState", "params": ["IconTabButtonState"], "why": "PLANNER TAB. Drives the planner tab's Active/Inactive visual" }
       ]
     },
     {
       "name": "MGSC.IconTabButtonState"
     },
     {
-      "name": "MGSC.HotkeyIcon",
-      "properties": [
-        { "name": "IsSymbolHotkeyShowing", "type": "Boolean", "why": "PLANNER TAB. The cloned UNLOAD ALL button carries a HotkeyIcon child showing its 'G' bind; the planner hides that child so its clones do not display a stray, meaningless key glyph. Bound only as a component type via GetComponentInChildren; this stable public property anchors the declaration so a rename surfaces at build time." }
-      ]
-    },
-    {
-      "name": "MGSC.TradeShuttleScreenPage"
-    },
-    {
       "name": "MGSC.CommonButton",
       "fields": [
-        { "name": "captionText", "type": "TextMeshProUGUI", "why": "PLANNER TAB. Fallback caption target for cloned buttons whose LocalizableLabel is not wired" }
+        { "name": "captionText", "type": "TextMeshProUGUI", "why": "PLANNER WINDOW. Fallback caption target and the source of the TMP font reused for the window's own labels." },
+        { "name": "background", "type": "Image", "why": "PLANNER WINDOW. Copied when a cloned HotkeyButton is swapped for a plain CommonButton, so the swapped button keeps its native background sprite." },
+        { "name": "_captionLabel", "type": "LocalizableLabel", "why": "PLANNER WINDOW. REFLECTION. The label that actually renders the caption; re-pointed on a swapped button and cleared so a set caption is not re-localised." },
+        { "name": "_captionTag", "type": "String", "why": "PLANNER WINDOW. REFLECTION. Cleared so OnEnable does not re-apply the original localisation tag over a caption we set." },
+        { "name": "_interactable", "type": "Boolean", "why": "PLANNER WINDOW. REFLECTION. Seeded to true on a button rebuilt by the HotkeyButton->CommonButton swap." }
+      ],
+      "properties": [
+        { "name": "CaptionLabel", "type": "LocalizableLabel", "why": "PLANNER WINDOW. Reaches the LocalizableLabel to set a raw caption that renders and sticks." }
       ],
       "methods": [
-        { "name": "SetRawCaption", "params": ["String"], "why": "PLANNER TAB. Sets each cloned button/row caption to raw rich text, clearing the localization tag so it is not re-applied on enable" },
-        { "name": "SetInteractable", "params": ["Boolean", "Boolean"], "why": "PLANNER TAB. Greys out the load buttons until a target good and a destination are chosen" }
+        { "name": "SetInteractable", "params": ["Boolean", "Boolean"], "why": "PLANNER WINDOW. Greys out the load buttons until a target good and a destination are chosen." }
       ]
     },
     {
-      "name": "MGSC.TradeShuttleLastReportPage",
+      "name": "MGSC.HotkeyButton",
+      "baseType": "MGSC.CommonButton",
       "fields": [
-        { "name": "_tripRootCaption", "type": "TextMeshProUGUI", "why": "PLANNER TAB. Read from the cloned page for the header text block" },
-        { "name": "_reportRoot", "type": "RectTransform", "why": "PLANNER TAB. Read from the cloned page as the parent for the preview text, load buttons and station rows" },
-        { "name": "_emptyState", "type": "GameObject", "why": "PLANNER TAB. Deactivated on the clone so the report page's empty-state does not show through the planner" }
+        { "name": "_keyId", "type": "String", "why": "PLANNER WINDOW. REFLECTION. Cleared on a cloned button so the HotkeyButton stops re-binding its 'G' key glyph. The button subtype is why the vanilla UNLOAD ALL clone kept showing a stray glyph: the panel is rebuilt on every enable, so it is swapped for a plain CommonButton instead." }
+      ]
+    },
+    {
+      "name": "MGSC.GameKeyPanel",
+      "fields": [
+        { "name": "_keyId", "type": "String", "why": "PLANNER WINDOW. REFLECTION. The key-glyph panel a HotkeyButton drives; its id is cleared and the panel destroyed on clones so no stray hotkey icon renders." }
+      ]
+    },
+    {
+      "name": "MGSC.LocalizableLabel",
+      "fields": [
+        { "name": "_label", "type": "String", "why": "PLANNER WINDOW. REFLECTION. The serialized localisation tag the label re-applies in Start/OnLangChanged. Clearing it is the fix for cloned captions silently reverting to 'UNLOAD ALL'." }
+      ],
+      "methods": [
+        { "name": "SetRawText", "params": ["String"], "why": "PLANNER WINDOW. Writes literal rich text into the caption TMP without a localisation tag." }
+      ]
+    },
+    {
+      "name": "MGSC.ItemSlot",
+      "properties": [
+        { "name": "Icon", "type": "Image", "why": "PLANNER WINDOW. The icon Image set directly on a display-only cell cloned from the item-slot prefab." }
+      ],
+      "fields": [
+        { "name": "_background", "type": "Image", "why": "PLANNER WINDOW. REFLECTION. The cell background image, restored to its normal sprite and made the click raycast target." },
+        { "name": "_count", "type": "TextMeshProUGUI", "why": "PLANNER WINDOW. REFLECTION. Repurposed as the stack-count label on a cell." },
+        { "name": "_normalBgSprite", "type": "Sprite", "why": "PLANNER WINDOW. REFLECTION. The native slot background sprite applied to a stripped cell." },
+        { "name": "_durabilityBar", "type": "DurabilityBar", "why": "PLANNER WINDOW. REFLECTION. Hidden on a display cell so no stray bar shows." },
+        { "name": "_usabilityBar", "type": "UsabilityBar", "why": "PLANNER WINDOW. REFLECTION. Hidden on a display cell." },
+        { "name": "_statusIcon", "type": "Image", "why": "PLANNER WINDOW. REFLECTION. Hidden on a display cell." },
+        { "name": "_modifiedIcon", "type": "Image", "why": "PLANNER WINDOW. REFLECTION. Hidden on a display cell." },
+        { "name": "_statusText", "type": "TextMeshProUGUI", "why": "PLANNER WINDOW. REFLECTION. Hidden on a display cell." },
+        { "name": "_hoverBorder", "type": "GameObject", "why": "PLANNER WINDOW. REFLECTION. Hidden on a display cell." }
+      ]
+    },
+    {
+      "name": "MGSC.ItemContentDescriptor",
+      "properties": [
+        { "name": "Icon", "type": "Sprite", "why": "PLANNER WINDOW. The per-item sprite resolved for a goods/hold cell." }
+      ]
+    },
+    {
+      "name": "MGSC.ItemFactory",
+      "methods": [
+        { "name": "ResolveIcon", "params": ["ItemContentDescriptor", "Int32"], "why": "PLANNER WINDOW. Turns an item's content descriptor into the sprite shown in a cell, exactly as the vanilla item slot does." }
+      ]
+    },
+    {
+      "name": "MGSC.UI",
+      "properties": [
+        { "name": "ScreenRoot", "type": "RectTransform", "why": "PLANNER WINDOW. The canvas root the game parents its [UIView] screens under; the mod parents its own full-screen window there and draws it above with a high-sorting Canvas, since it cannot register a real UIView." },
+        { "name": "Pools", "type": "UIPools", "why": "PLANNER WINDOW. Source of the shared item-slot prefab cloned for icon cells." }
+      ]
+    },
+    {
+      "name": "MGSC.UIPools",
+      "properties": [
+        { "name": "ItemSlots", "type": "Pool", "why": "PLANNER WINDOW. The pool whose prefab is the authentic item-slot cell." }
+      ]
+    },
+    {
+      "name": "MGSC.Pool",
+      "fields": [
+        { "name": "prefab", "type": "GameObject", "why": "PLANNER WINDOW. The item-slot prefab instantiated (not taken from the pool) to build display cells that inherit native sprites." }
       ]
     },
     {

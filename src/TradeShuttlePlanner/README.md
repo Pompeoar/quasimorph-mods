@@ -9,14 +9,15 @@ You want a Weapons Case. Vanilla makes you open the stock market, click the item
 three stations that manufacture it, back out, load the shuttle by hand, send it to one of them,
 find out the trade value was poor, come back and reload.
 
-With this mod, the quickest route is the built-in **Planner tab**:
+With this mod, the quickest route is the built-in **Planner** button:
 
-1. Open the trade shuttle screen and click the **Planner** tab.
-2. Pick the good you want from the in-panel list, then pick a destination.
+1. Open the trade shuttle screen and click the **Planner** tab. It opens a full-screen window.
+2. Pick the good you want from a grid of item icons, pick a destination orbit, then load and review.
 
-No stock market, no memorising manufacturers. The panel loads your shuttle with whatever that
+No stock market, no memorising manufacturers. The window loads your shuttle with whatever that
 destination actually pays for, sets the barter category, and shows how many of the item to expect
-back. See [The Planner tab](#the-planner-tab) below for the full walk-through.
+back - updating live as you add or remove individual items. See
+[The Planner window](#the-planner-window) below for the full walk-through.
 
 There is also a hotkey flow for when you would rather not open the screen first:
 
@@ -25,7 +26,7 @@ There is also a hotkey flow for when you would rather not open the screen first:
 
 Both routes end the same way: the shuttle is loaded, the category is set, and you are told which
 orbit to send it to. The stock-market click is only an optional shortcut that pre-selects the good
-for the F9 flow - the Planner tab needs none of it.
+for the F9 flow - the Planner window needs none of it.
 
 ## What it does when you press F9
 
@@ -56,58 +57,66 @@ seller where it ranks higher, or better reputation so its price drops.
 Press **F9** anywhere else on the space map and it falls back to its other mode: ranking every
 destination for the hold you have already built by hand.
 
-## The Planner tab
+## The Planner window
 
-The mod injects a third tab into the trade shuttle screen, next to **Cargo** and **Last trip
-report**. It is an interactive, self-contained version of the F9 idea: you pick the good and the
-destination inside this one panel. **The stock market is not required at any point.**
+The mod adds a third tab to the trade shuttle screen, next to **Cargo** and **Last trip report**.
+Clicking it no longer draws an inline page - it opens a **full-screen window** styled to look
+native (dark panel, teal border, section headers). The window is built by cloning the game's own
+widgets - the item-slot cell for the icon grids, the trade-shuttle buttons for every button and
+row, its TMP labels for text - so it inherits the game's fonts, sprites and materials rather than
+looking like a bolt-on. **The stock market is not required at any point.**
 
 Open the trade shuttle screen and click the new tab (its icon is a clone of the report tab's). The
-tab has two modes.
+window walks three steps. **ESC** or the on-screen **CLOSE** button dismisses it.
 
-### Mode A - pick a good (the default)
+### Step 1 - choose the good
 
-When no good is chosen, the panel lists every distinct item currently on the shelf across every
-orbit that will trade with you. For each good it shows the display name, the total stock summed
-across those orbits, how many distinct orbits stock it, and the **lowest reputation-scaled buy
-price** any of them quotes. The list is sorted by name.
+A **grid of item icons** (roughly eight per row, forty per page), exactly like the ship cargo grid:
+each cell shows the item's real icon and its total stock summed across every orbit that will trade
+with you. Across the top are **filter tabs by barter category** - Weapons, Equipment, Consumables,
+Goods, Chips - taken from `Data.TradeShuttleBarterCategories`; each item is mapped to a category by
+its `ItemClass`. A text line under the grid names whichever cell you are hovering. If a category
+runs past one page it paginates with **< PREV** / **NEXT >** and a "Page N/M" readout. Click a cell
+to choose that good and go to Step 2.
 
-Because this can run to hundreds of entries and the screen has no text box to type into, it is
-**paginated**: about twelve goods per page, with **< PREV** and **NEXT >** buttons and a
-"Page N/M" indicator in the body text. Click a good to choose it and switch to Mode B.
+### Step 2 - choose the station
 
-### Mode B - pick a destination
+A list of every reachable station stocking the chosen good, one clickable row each, showing the
+orbit, the owning faction, **how many are on the shelf**, the reputation-scaled **buy price**
+(`TradeSystem.GetItemBuyPrice`), and the item's **rank** in that station's buy order. Rows are
+**sorted by stock, most first** - you usually want the orbit with the most - and each is
+**colour-coded by your reputation** with that faction using the game's own thresholds. A **BACK**
+button returns to Step 1; click a row to pick that destination and go to Step 3.
 
-Once a good is chosen the panel shows, exactly as before:
-
-- **Every reachable station stocking it**, one clickable row each, showing the orbit, the owning
-  faction, how many are on the shelf, the reputation-scaled **buy price**, and the item's **rank**
-  in that station's buy order. Each row is **colour-coded by your reputation** with that faction,
-  using the game's own thresholds (green / amber / red). Click a row to pick that destination.
-- **The expected return** for the picked destination and *the hold as it stands right now*: how
-  many of the target come back, the full returning-items list, the total return value and the
-  profit percent. This is the game's own `SimulateTradeShuttlePreviewExchange`, not an estimate,
-  and it re-runs automatically whenever the hold changes, so it stays live as you load and unload.
-
-A **CHANGE GOOD** button clears the current good and returns you to Mode A.
+### Step 3 - load and review
 
 Two load buttons fill the hold for the picked destination:
 
-- **LOAD IN-DEMAND** - loads only cargo that destination actually consumes, cheapest first,
-  skipping quest items and anything on your `keep` list, and stops as soon as the simulation shows
-  the target coming home.
+- **LOAD IN-DEMAND** - loads only cargo that destination actually consumes (per
+  `TradeSystem.IsValidItem`), cheapest first, skipping quest items and anything on your `keep`
+  list, and stopping as soon as the simulation shows the target coming home.
 - **LOAD BEST** - the high-value variant: loads the most valuable consumable cargo that fits.
 
-Both honour the `keep` list, never touch quest items, and are fully undone by the vanilla
-**UNLOAD ALL** button.
+Below the buttons are two icon grids: **the shuttle hold as it stands now**, and the **eligible
+ship-cargo** items this station demands but which are not yet loaded. You edit the loadout by
+clicking cells: click a **hold** cell to unload that item back to ship cargo, click an
+**available-cargo** cell to load it. Every move is the same storage operation the rest of the mod
+uses, is fully reversible, and never touches quest items.
 
-Picking a good in the tab also sets the same target the **F9** flow uses, so the two stay in sync:
-clicking an item in the stock market remains an optional shortcut that pre-selects the good, but it
-is no longer required - a brand-new game where the stock market has never been opened works fine.
+**The expected return updates live** after every change: the count of the target item coming home,
+the returning-items list, the total return value and the profit percent. This is the game's own
+`SimulateTradeShuttlePreviewExchange`, not an estimate; it is recomputed whenever the hold actually
+changes (the hold is hashed, so it does not re-run every frame). A **BACK** button returns to
+Step 2.
 
-The tab is deliberately defensive: if any expected screen widget is missing (for instance after a
-game update moves a field), it logs once and simply does not appear, rather than throwing every
-frame.
+Picking a good in the window also sets the same target the **F9** flow uses, so the two stay in
+sync: clicking an item in the stock market remains an optional shortcut that pre-selects the good,
+but it is no longer required - a brand-new game where the stock market has never been opened works
+fine.
+
+The window is deliberately defensive: if any expected screen widget is missing (for instance after
+a game update moves a field), it logs once and simply does not open, rather than throwing. A
+per-frame circuit-breaker disables it after repeated failures instead of spamming exceptions.
 
 ## Why this is exact, not a heuristic
 
@@ -146,9 +155,9 @@ Restart the game fully afterwards; assemblies are not hot-reloaded.
 
 ## Use
 
-Open the trade shuttle screen, click the **Planner** tab, pick a good and a destination - all
-in-panel. Or, for the hotkey flow, pick an item in the stock market and press **F9** on the trade
-shuttle screen.
+Open the trade shuttle screen, click the **Planner** tab to open the window, then pick a good, pick
+a destination, and load/review - all in the one window. Or, for the hotkey flow, pick an item in
+the stock market and press **F9** on the trade shuttle screen.
 
 A summary pops up in game; the full report is written to
 
@@ -186,11 +195,14 @@ whatever you last clicked in the stock market for the F9 flow.
 dotnet run --project tools\Verify -- "<Managed folder>" TradeShuttlePlanner
 ```
 
-`patch-targets.json` declares the game members this mod binds to. Almost all of them are
-compile-time references, so a rename would already be a build error -- but
-`TradeSystem.SimulateTradeShuttlePreviewExchange` is private and reached by reflection. If a
-game update renames it, the mod silently degrades to value-only output with no error anywhere.
-That one member is the main reason the manifest exists.
+`patch-targets.json` declares the game members this mod binds to. Many are compile-time
+references, so a rename would already be a build error -- but several are reached by reflection and
+would fail silently: `TradeSystem.SimulateTradeShuttlePreviewExchange` (private) and the private
+serialized fields the Planner window re-points on cloned widgets to fix the caption and hotkey-glyph
+bugs (`LocalizableLabel._label`, `CommonButton._captionLabel`/`_captionTag`/`_interactable`,
+`HotkeyButton._keyId`, `GameKeyPanel._keyId`, and the `ItemSlot` icon/background/count fields). If a
+game update renames any of them the mod degrades rather than crashing, so the manifest exists to
+turn those silent breaks into a build-time failure.
 
 `tools/Verify/Checks/TradeShuttlePlannerChecks.cs` additionally proves the where-to-buy
 ranking is sound. The game selects purchases by repeated argmax over
