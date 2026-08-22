@@ -28,6 +28,12 @@ namespace TradeShuttlePlanner
         /// <summary>When MaxCargoValue is 0, load at most this many times the target's world price.</summary>
         public float CargoValueMultiplier = 6f;
 
+        /// <summary>
+        /// Cargo world value to load per trade point needed. Sale prices sit below world prices,
+        /// so the hold has to be worth more than the points it has to raise.
+        /// </summary>
+        public float CargoValueHeadroom = 3f;
+
         /// <summary>Items at or below this unit world price are treated as barter junk and spent first.</summary>
         public int JunkCeiling = 400;
 
@@ -125,6 +131,12 @@ namespace TradeShuttlePlanner
                         cfg.CargoValueMultiplier = Math.Min(cm, 100f);
                     }
                     break;
+                case "cargovalueheadroom":
+                    if (float.TryParse(val, NumberStyles.Float, CultureInfo.InvariantCulture, out var ch) && ch > 0f)
+                    {
+                        cfg.CargoValueHeadroom = Math.Min(ch, 100f);
+                    }
+                    break;
                 case "junkceiling":
                     if (int.TryParse(val, NumberStyles.Integer, CultureInfo.InvariantCulture, out var jc) && jc >= 0)
                     {
@@ -166,9 +178,12 @@ namespace TradeShuttlePlanner
             ("maxcargovalue", "maxCargoValue = 0", new[]
                 { "# maxCargoValue hard ceiling on loaded cargo world value. 0 = derive it." }),
             ("cargovaluemultiplier", "cargoValueMultiplier = 6", new[]
-                { "# cargoValueMultiplier  when maxCargoValue is 0, load at most this many times",
-                  "#               the wanted item's world price. Stops the hold being emptied",
-                  "#               for a cheap purchase." }),
+                { "# cargoValueMultiplier  floor for the cargo budget, as a multiple of the wanted",
+                  "#               item's world price." }),
+            ("cargovalueheadroom", "cargoValueHeadroom = 3", new[]
+                { "# cargoValueHeadroom  cargo world value loaded per trade point needed. Sale",
+                  "#               prices sit below world prices, so the hold must be worth more",
+                  "#               than the points it has to raise." }),
             ("allowunwantedfiller", "allowUnwantedFiller = false", new[]
                 { "# allowUnwantedFiller  true = also load cargo the destination does not consume.",
                   "#               That cargo only liquidates at a fifth of its worth while still",

@@ -108,5 +108,25 @@ namespace TradeShuttlePlanner
                 cellsAhead += ordered[i].Cells * Math.Max(1, ordered[i].Stock);
             }
         }
+
+        /// <summary>
+        /// Trade points that are certainly enough to reach <paramref name="itemId"/>: the cost of
+        /// clearing out every strictly better-ranked item's entire stock, plus the item itself.
+        ///
+        /// This is an upper bound, not the minimum. The real loop skips a better item once it can
+        /// no longer afford it, so the target is often bought with far less - which is exactly why
+        /// "you need a bigger cargo" is usually true and the earlier flat refusal was wrong. It is
+        /// only genuinely hopeless when the better stock would fill every return cell first.
+        /// </summary>
+        public static int PointsToReach(List<BuyCandidate> ordered, string itemId)
+        {
+            long total = 0;
+            foreach (var c in ordered)
+            {
+                if (c.Id == itemId) { return (int)Math.Min(int.MaxValue, total + c.Buy); }
+                total += (long)c.Buy * Math.Max(1, c.Stock);
+            }
+            return 0;
+        }
     }
 }

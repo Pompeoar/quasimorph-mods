@@ -22,6 +22,8 @@ namespace TradeShuttlePlanner
         public int CellsAhead;           // cells the shuttle spends on better items before it
         public int TargetBuyPrice;       // reputation-scaled price the best seller here quotes
         public int Reputation;           // our standing with that seller
+        public int PointsNeeded;         // trade points that certainly reach it in the buy order
+        public int HoldCells;            // return cells the shuttle has to work with
         public List<BasePickupItem> Load = new List<BasePickupItem>();
         public List<string> Sellers = new List<string>();
     }
@@ -223,6 +225,7 @@ namespace TradeShuttlePlanner
             var cellsAhead = int.MaxValue;
             var buyPrice = 0;
             var reputation = 0;
+            var pointsNeeded = 0;
 
             foreach (var view in sellers)
             {
@@ -238,11 +241,17 @@ namespace TradeShuttlePlanner
                     buyPrice = price;
                     reputation = Mathf.RoundToInt(view.Faction.PlayerReputation);
                 }
-                if (ca < cellsAhead) { cellsAhead = ca; rank = r; field = f; }
+                if (ca < cellsAhead)
+                {
+                    cellsAhead = ca;
+                    rank = r;
+                    field = f;
+                    pointsNeeded = BuyOrder.PointsToReach(ordered, targetItemId);
+                }
             }
             if (cellsAhead == int.MaxValue) { cellsAhead = -1; }
 
-            var cap = CargoCap(prices, targetItemId);
+            var cap = CargoCap(prices, targetItemId, pointsNeeded);
             var queue = OrderedCargo(progression, prices, cargo, eligible);
 
             FetchOption best = null;
@@ -272,6 +281,8 @@ namespace TradeShuttlePlanner
                 option.CellsAhead = cellsAhead;
                 option.TargetBuyPrice = buyPrice;
                 option.Reputation = reputation;
+                option.PointsNeeded = pointsNeeded;
+                option.HoldCells = dept.TradeShuttleStorage.Width * dept.TradeShuttleStorage.Height;
                 option.Sellers = sellers
                     .Select(v => Names.Faction(v.Station.OwnerFactionId)).Distinct().ToList();
                 option.Load = new List<BasePickupItem>(dept.TradeShuttleStorage.Items);
@@ -314,16 +325,23 @@ namespace TradeShuttlePlanner
         }
 
         /// <summary>
-        /// How much cargo world value we are willing to spend. Sending 100k of gear to fetch a 5k
-        /// item is exactly the hold-emptying behaviour that made the first build unusable, so the
-        /// default ceiling is a multiple of what the wanted item is worth.
+        /// How much cargo world value we are willing to spend.
+        ///
+        /// The budget is driven by what it actually costs to reach the item in the station's buy
+        /// order - clearing the better-ranked stock, plus the item - rather than by a flat
+        /// multiple of its price. A flat multiple capped the Driller run at 2,512 and guaranteed
+        /// it came home empty. Cargo world value converts to trade points at less than parity
+        /// because sell prices sit below world prices, hence the headroom factor.
         /// </summary>
-        private static float CargoCap(ItemsPrices prices, string targetItemId)
+        private static float CargoCap(ItemsPrices prices, string targetItemId, int pointsNeeded)
         {
             var cfg = PlannerConfig.Current;
             if (cfg.MaxCargoValue > 0) { return cfg.MaxCargoValue; }
+
             var world = prices.GetPrice(targetItemId);
-            return Mathf.Max(2000f, world * cfg.CargoValueMultiplier);
+            var floor = Mathf.Max(2000f, world * cfg.CargoValueMultiplier);
+            if (pointsNeeded <= 0) { return floor; }
+            return Mathf.Max(floor, pointsNeeded * cfg.CargoValueHeadroom);
         }
 
         private sealed class StationView

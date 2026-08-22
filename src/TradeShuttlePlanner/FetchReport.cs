@@ -40,21 +40,27 @@ namespace TradeShuttlePlanner
             if (c.TargetCount == 0)
             {
                 sb.AppendLine();
-                if (c.Rank > 1)
+                if (c.CellsAhead > 0 && c.HoldCells > 0 && c.CellsAhead >= c.HoldCells)
                 {
-                    // The shuttle buys strictly best-ratio first, so position in that queue is
-                    // the real gate - not how much cargo you send.
-                    sb.AppendLine("WHY 0x: it is #" + c.Rank + " of " + c.Field + " in the buy order");
-                    sb.AppendLine("there. The shuttle spends everything on the " + (c.Rank - 1) + " better");
-                    sb.AppendLine("value items first and fills the hold. More cargo will not");
-                    sb.AppendLine("help; you need a seller where it ranks higher, or better rep");
-                    sb.AppendLine("so its price drops.");
+                    // Only this case is genuinely hopeless: the better-ranked stock alone would
+                    // fill every return cell, so no budget ever reaches the item.
+                    sb.AppendLine("WHY 0x: it is #" + c.Rank + " of " + c.Field + " in the buy order,");
+                    sb.AppendLine("and the better-value stock ahead of it (" + N(c.CellsAhead) + " cells) already");
+                    sb.AppendLine("fills the hold (" + c.HoldCells + "). More cargo cannot help. Find a seller");
+                    sb.AppendLine("where it ranks higher, or raise reputation to drop its price.");
+                }
+                else if (c.PointsNeeded > 0)
+                {
+                    sb.AppendLine("WHY 0x: it is #" + c.Rank + " of " + c.Field + " in the buy order, so the");
+                    sb.AppendLine("shuttle clears the better-value stock first. Reaching it takes");
+                    sb.AppendLine("up to " + N(c.PointsNeeded) + " trade points; this hold raised less.");
+                    sb.AppendLine("Load more of what this station consumes, or raise");
+                    sb.AppendLine("cargoValueHeadroom in planner.cfg.");
                 }
                 else
                 {
-                    sb.AppendLine("WARNING: this loadout does not bring one back. Raise the");
-                    sb.AppendLine("cargo cap (cargoValueMultiplier in planner.cfg) or improve");
-                    sb.AppendLine("reputation with the faction selling it.");
+                    sb.AppendLine("WARNING: this loadout does not bring one back. Load more of");
+                    sb.AppendLine("what this station consumes, or improve reputation with it.");
                 }
             }
 
