@@ -1,24 +1,38 @@
 # Trade Shuttle Planner
 
-A Quasimorph mod that answers the only two questions that matter when you load the trade
-shuttle: **where should I send it, and which category should I pick?**
+Stops the trade shuttle guessing loop: load the hold, pick an orbit, pick a category, read
+PROFIT, discover it is bad, unload, repeat.
 
-Press a hotkey on the star map and it simulates every reachable orbit against every barter
-category at once, then ranks them. No more loading the hold, guessing a destination, reading
-the PROFIT number, and starting over.
+## The flow it replaces
 
-## What it tells you
+You want a Weapons Case. Vanilla makes you open the stock market, click the item, memorise the
+three stations that manufacture it, back out, load the shuttle by hand, send it to one of them,
+find out the trade value was poor, come back and reload.
 
-- **Ranked destinations.** Every orbit you can reach, with the best barter category for that
-  orbit, the resulting PROFIT percentage, and a preview of what actually comes back.
-- **Dead weight.** Cargo that no eligible station at your best destination consumes. Those items
-  do not get sold, they get liquidated at the junk rate, so they are usually worth pulling out
-  and selling by hand instead.
-- **Where to buy.** List items you are hunting in the config file and it sweeps every station's
-  stock, reporting the orbit, price at your current reputation, and where the item sits in the
-  shuttle's own value-for-money ordering. **Rank 1/12** means the priority budget buys that item
-  before the other eleven candidates in its category.
+With this mod:
 
+1. Open the stock market (**H**), go to the goods tab, click the item you want.
+2. Open the trade shuttle screen and press **F9**.
+
+The mod loads your shuttle with whatever that destination actually pays for, sets the barter
+category, and tells you which orbit to send it to and how many of the item to expect back.
+
+It picks the target up from the stock market window itself, so there is no extra UI to learn -
+opening Weapons Case *is* the act of saying "this is what I want".
+
+## What it does when you press F9
+
+- Finds every orbit that will trade with you **and is currently stocking** the item. The stock
+  market's manufacturer list tells you who makes it; that is not the same as who has one on the
+  shelf right now, which is what the shuttle can actually buy.
+- For each of those, fills the hold from ship cargo with the highest-value goods *that
+  destination consumes*. Cargo it will not consume only liquidates at the junk rate, so it is
+  ranked far below and used only as filler.
+- Simulates the run and keeps the loadout that brings back the most of what you asked for.
+- Leaves the winning loadout in the hold with the category already selected.
+
+Press **F9** anywhere else on the space map and it falls back to its other mode: ranking every
+destination for the hold you have already built by hand.
 ## Why this is exact, not a heuristic
 
 The shuttle exchange contains **no RNG whatsoever** — its final tie-break is
@@ -56,13 +70,17 @@ Restart the game fully afterwards; assemblies are not hot-reloaded.
 
 ## Use
 
-Load a save, open the star map with the shuttle loaded, and press **F9**.
+Pick an item in the stock market, then press **F9** on the trade shuttle screen.
 
 A summary pops up in game; the full report is written to
 
 ```
 %AppData%\LocalLow\Magnum Scriptum Ltd\Quasimorph\TradeShuttlePlanner\last_plan.txt
 ```
+
+The mod only ever moves items between your ship cargo and the shuttle hold, and it skips quest
+items exactly as the vanilla screen does. If you don't like the loadout, UNLOAD ALL puts it all
+back.
 
 ## Configuration
 
@@ -74,10 +92,10 @@ A summary pops up in game; the full report is written to
 | `topOrbits` | `12` | Destinations listed in the full report. |
 | `maxGainsShown` | `4` | Returning items named per destination. |
 | `showDialog` | `true` | Set false for a notification only. |
-| `wanted` | *(empty)* | Comma-separated item ids or name fragments to locate. |
+| `wanted` | *(empty)* | Comma-separated item ids or name fragments, for the survey mode's where-to-buy section. |
 
-`wanted` matches on item id or on any part of the localized display name, so
-`wanted = research, ore cargo` works.
+The shopping target itself is **not** configured here — it comes from whatever you last clicked
+in the stock market.
 
 ## Verifying
 

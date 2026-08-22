@@ -10,7 +10,7 @@ Issues and pull requests welcome at
 |---|---|---|
 | [PerkCooldownHud](src/PerkCooldownHud) | [3785994116](https://steamcommunity.com/sharedfiles/filedetails/?id=3785994116) | Shows how many turns until a triggered perk is ready again |
 | [BaneCounter](src/BaneCounter) | [3787606598](https://steamcommunity.com/sharedfiles/filedetails/?id=3787606598) | Shows your actual Bane level, on the HUD and per operator |
-| [TradeShuttlePlanner](src/TradeShuttlePlanner) | — | Ranks every trade shuttle destination and barter category at once |
+| [TradeShuttlePlanner](src/TradeShuttlePlanner) | — | Pick an item in the stock market, then auto-loads the shuttle and names the destination |
 | [PerkListSort](src/PerkListSort) | not published yet | Sorts the perk picker alphabetically instead of reverse config order |
 
 Publishing one of these: **[PUBLISHING.md](PUBLISHING.md)**. Writing its store page:
@@ -124,4 +124,4 @@ the same game surface and break the same way on a game update.
 
 ## Environment
 
-Game build `1.0.1.566s.7e4da55`, Unity 2022.3, Harmony 2.3.3, `netstandard2.1`.
+Game build `1.0.3.577s.887ffe7`, Unity 2022.3, Harmony 2.3.3, `netstandard2.1`.

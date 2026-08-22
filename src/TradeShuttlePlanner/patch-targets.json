@@ -43,7 +43,10 @@
         { "name": "ShuttleInMove", "type": "Boolean", "why": "refuses to plan while the shuttle is already out" },
         { "name": "TradeShuttleStorage", "type": "ItemStorage", "why": "the hold being planned for" },
         { "name": "Mode", "type": "TradeShuttleMode", "why": "read, not written; the scan follows the player's chosen mode and only sweeps categories in Barter" },
-        { "name": "SelectedBarterCategoryId", "type": "String", "setter": true, "why": "the one live field the scan writes, cycled through every category and restored in a finally block" }
+        { "name": "SelectedBarterCategoryId", "type": "String", "setter": true, "why": "set to the category containing the wanted item, so the priority budget chases it" }
+      ],
+      "methods": [
+        { "name": "CheckShuttleArrived", "params": [], "why": "called after unloading, exactly as the vanilla unload-all button does" }
       ]
     },
     {
@@ -79,7 +82,8 @@
     {
       "name": "MGSC.MagnumProgression",
       "properties": [
-        { "name": "TradeShuttleContraband", "type": "Boolean", "why": "bypasses the reputation floor entirely" }
+        { "name": "TradeShuttleContraband", "type": "Boolean", "why": "bypasses the reputation floor entirely" },
+        { "name": "TradeShuttleUnsupportedSellValuePercent", "type": "Single", "why": "the junk rate; ranks cargo the destination will not consume far below cargo it will" }
       ]
     },
     {
@@ -106,6 +110,42 @@
       "name": "MGSC.TradeShuttleBarterCategoryRecord",
       "properties": [
         { "name": "ItemClasses", "type": "List`1", "why": "maps an item's class to the dropdown option that would prioritise it" }
+      ]
+    },
+    {
+      "name": "MGSC.TradeWindow",
+      "methods": [
+        { "name": "Configure", "why": "HARMONY POSTFIX. The stock market item window; its itemId argument is how the mod learns what the player is shopping for. A rename makes the mod forget the target entirely and it becomes unusable." }
+      ]
+    },
+    {
+      "name": "MGSC.TradeShuttleScreen",
+      "methods": [
+        { "name": "RefreshView", "params": [], "why": "the hold is changed underneath the open screen, so it has to be told to redraw" }
+      ]
+    },
+    {
+      "name": "MGSC.MagnumCargo",
+      "fields": [
+        { "name": "ShipCargo", "type": "List`1", "why": "the source the shuttle is auto-loaded from" }
+      ]
+    },
+    {
+      "name": "MGSC.MagnumCargoSystem",
+      "methods": [
+        { "name": "AddCargo", "why": "returns trial loadouts to ship cargo between candidate destinations" }
+      ]
+    },
+    {
+      "name": "MGSC.ItemInteractionSystem",
+      "methods": [
+        { "name": "IsQuestItem", "params": ["BasePickupItem"], "why": "quest items must never be loaded; the vanilla screen blocks them too" }
+      ]
+    },
+    {
+      "name": "MGSC.ItemStorage",
+      "methods": [
+        { "name": "TryPutItem", "why": "the actual load operation, same call the vanilla ctrl-click transfer uses" }
       ]
     },
     {
