@@ -1,0 +1,43 @@
+{
+  "description": "Members PerkListSort patches or reads by name. Harmony and AccessTools bind by name at runtime, so a rename in a game update would otherwise be a silent no-op - the list would quietly go back to vanilla order with nothing in the log.",
+  "types": [
+    {
+      "name": "MGSC.MagnumProjectSelectAbilityWindow",
+      "methods": [
+        { "name": "Show", "params": ["MagnumProjectParameter", "ISelectAbilityListener", "Boolean"], "why": "postfixed; this is where the whole list is built, for both the perk and the talent cases" }
+      ],
+      "fields": [
+        { "name": "_panels", "type": "List`1", "why": "the live rows. Read rather than the root's children because freed rows stay parented and merely deactivated" },
+        { "name": "_abilityPanelsRoot", "type": "RectTransform", "why": "not touched directly, but it is the parent whose sibling order the mod rewrites" },
+        { "name": "_abilityPanelsPool", "type": "Pool", "why": "not touched; its Put-without-setParent behaviour is why leftovers stay under the root" }
+      ]
+    },
+    {
+      "name": "MGSC.MagnumProjectAbilityPanel",
+      "fields": [
+        { "name": "_perkId", "type": "String", "why": "the sort key's source; read by FieldRefAccess" }
+      ],
+      "methods": [
+        { "name": "Initialize", "params": ["String"], "why": "not patched, but it is what proves the row's caption comes from perk.<id>.name" }
+      ]
+    },
+    {
+      "name": "MGSC.FormatHelper",
+      "methods": [
+        { "name": "ClearPerkGrades", "params": ["String"], "why": "strips _basic/_advanced/_master/_legend so the localization key resolves, exactly as the panel does" }
+      ]
+    },
+    {
+      "name": "MGSC.Localization",
+      "methods": [
+        { "name": "Get", "params": ["String", "Boolean"], "why": "resolves the same display name the row shows, so the sort matches what the player reads. The second parameter is defaulted, so the call site passes one argument" }
+      ]
+    },
+    {
+      "name": "MGSC.Pool",
+      "methods": [
+        { "name": "Put", "params": ["GameObject", "Boolean"], "why": "the optional setParent is why deactivated rows remain children of the list root" }
+      ]
+    }
+  ]
+}

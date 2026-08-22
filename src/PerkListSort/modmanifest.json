@@ -1,0 +1,13 @@
+{
+  "UniqueModName": "PerkListSort",
+  "Assemblies": [
+    "PerkListSort.dll"
+  ],
+  "Dependencies": [],
+  "SteamTags": [
+    "1.0",
+    "UI",
+    "Quality of Life"
+  ],
+  "RoomPresetNamespaceSlot": 0
+}
